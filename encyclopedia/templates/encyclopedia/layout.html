@@ -13,7 +13,7 @@
             <div class="sidebar col-lg-2 col-md-3">
                 <h2>Wiki</h2>
                 <form action="{% url 'wiki:search_results'  %}" method="GET">
-                    {% csrf_token %}
+                    
                     {{form}}
                     <input type="submit">
                     

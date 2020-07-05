@@ -22,13 +22,13 @@ def index(request):
 def get_page(request,title):
     form = NewSearchForm()
     value = markdown_to_html(title)
-    print("here in get page",value)
+    
     if value is None:
         return render(request,"encyclopedia/error.html",{
             "form":form
         })
         
-    print("here in get page",request)
+    
     return render(request,"encyclopedia/titlepage.html",{
         'title': title, 
         'content': value,
@@ -69,7 +69,7 @@ def get_search_query(request):
                 })
             else:
                 title = files[0]
-                print("one page",title)
+                
                 value = markdown_to_html(title)
                 if value is None:
                     return render(request,"encyclopedia/error.html",{
