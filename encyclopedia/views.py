@@ -1,18 +1,14 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.urls import reverse
-from django import forms
-from . import util
+from django.core.files import File
+from . import util,forms
 
 
+form = forms.NewSearchForm()
 
-class NewSearchForm(forms.Form):
-    search = forms.CharField(label="Search",required= False)
-    # widget= forms.TextInput
-    # (attrs={'placeholder':'Search Encyclopedia'}))
-    
 def index(request):
-    form = NewSearchForm()
+    
     return render(request, "encyclopedia/index.html", {
         "entries": util.list_entries(),
         "form":form
@@ -20,14 +16,12 @@ def index(request):
 
 # redirect to page
 def get_page(request,title):
-    form = NewSearchForm()
-    value = markdown_to_html(title)
-    
+    value = util.get_entry(title)
+
     if value is None:
         return render(request,"encyclopedia/error.html",{
             "form":form
-        })
-        
+        }) 
     
     return render(request,"encyclopedia/titlepage.html",{
         'title': title, 
@@ -35,19 +29,20 @@ def get_page(request,title):
         "form":form
     })
 
-# markdown to html conversion
-def markdown_to_html(title):
-    value = util.get_entry(title)
 
-    if value is None:
-        return None
-    return value
+# markdown to html conversion
+# def markdown_to_html(title):
+#     value = util.get_entry(title)
+
+#     if value is None:
+#         return None
+#     return value
 
 #search a query
 def get_search_query(request):
     #import pdb; pdb.set_trace()
     if request.method == "GET":
-        form = NewSearchForm(request.GET)
+        form = forms.NewSearchForm(request.GET)
       
         if form.is_valid():
             searchquery = form.cleaned_data["search"].lower()
@@ -69,36 +64,54 @@ def get_search_query(request):
                 })
             else:
                 title = files[0]
-                
-                value = markdown_to_html(title)
-                if value is None:
-                    return render(request,"encyclopedia/error.html",{
-                    "form":form
-                    })
-        
-                
-                return render(request,"encyclopedia/titlepage.html",{
-                    'title': title, 
-                    'content': value,
-                    "form":form
-                })
+                return get_page(request, title)
+
 
         else:
-            return render(request, "encyclopedia/index.html", {
-            "entries": util.list_entries(),
-            "form":form
-        })
+            return index(request)
 
 
-    return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries(),
-        "form":form
-    })
+    return index(request)
 
 # new page
 
 def new_page(request):
-    return index()
+    print(request.method)
+    if request.method == "GET":
+        create_form= forms.NewPageForm()
+        return render(request, "encyclopedia/create_page.html",{
+            "form":form,
+            "create_form":create_form
+
+        })
+    else:
+        create_form = forms.NewPageForm(request.POST)
+        if create_form.is_valid():
+            title = create_form.cleaned_data["title"]
+            body = "#" +title +'\n'+ create_form.cleaned_data["body"]
+            all_entries = util.list_entries()
+            for filename in all_entries:
+                if title.lower()== filename.lower():
+                    create_form = forms.NewPageForm()
+                    return render(request, "encyclopedia/create_page.html",{
+                        "form":form,
+                        "create_form":create_form,
+                        "error":"page exists"
+                        
+
+                    })
+
+            util.save_entry(title,body)
+            return get_page(request, title)
+
+
+
+
+
+
+   
+        
+
 #show random page
 def random_page(request):
     return index()
