@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.core.files import File
 from . import util,forms
+from random import choice
 
 
 form = forms.NewSearchForm()
@@ -30,13 +31,6 @@ def get_page(request,title):
     })
 
 
-# markdown to html conversion
-# def markdown_to_html(title):
-#     value = util.get_entry(title)
-
-#     if value is None:
-#         return None
-#     return value
 
 #search a query
 def get_search_query(request):
@@ -74,7 +68,6 @@ def get_search_query(request):
     return index(request)
 
 # new page
-
 def new_page(request):
     print(request.method)
     if request.method == "GET":
@@ -104,15 +97,8 @@ def new_page(request):
             util.save_entry(title,body)
             return get_page(request, title)
 
-
-
-
-
-
-   
-        
+       
 
 #show random page
 def random_page(request):
-    return index()
-
+    return get_page(request, choice( util.list_entries()))
