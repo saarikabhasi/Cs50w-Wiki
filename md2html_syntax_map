@@ -1,0 +1,8 @@
+# The largest heading - h1
+## The second largest heading - h2
+and so on till
+###### The smallest heading - h6
+=================================
+**This is bold text** / __This is bold text__ -> <strong> or <b>
+*This text is italicized* / _This text is italicized_ -><em>
+~~This was mistaken text~~ -> <del>/<s>
