@@ -9,9 +9,38 @@
         <link href="{% static 'encyclopedia/styles.css' %}" rel="stylesheet">
     </head>
     <body>
+        {% block nav %}
+            <nav class="navbar navbar-expand-lg nav-pills mb-3 ">
+                <a class="navbar-brand" href="#"><h1>Wiki</h1></a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon">hi</span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ">
+                    <li class="nav-item ">
+                        {% block nav-home %}
+                            <a class="nav-link" href="{% url 'wiki:index' %}">Home<span class="sr-only">(current)</span></a>
+                        {% endblock %}
+                    </li>
+        
+                    <li class="nav-item ">
+                        {% block nav-create %}
+                            <a class="nav-link " href = "{% url 'wiki:create' %}"><b>Create New Page</b></a>
+                        {% endblock %}
+                    </li>
+                    <li class="nav-item ">
+                        {% block nav-random %}
+                            <a class="nav-link"  href = "{% url 'wiki:random' %}">Random Page</a>
+                        {% endblock %}
+                    </li>
+    
+                    </ul>
+                </div>
+            </nav>
+        {% endblock %}
         <div class="row">
-            <div class="sidebar col-lg-2 col-md-3">
-                <h2>Wiki</h2>
+            <div class="sidebar col-lg-3 col-md-3">
+                
                 <form action="{% url 'wiki:search_results'  %}" method="GET">
                     
                     {{form}}
@@ -19,20 +48,12 @@
                     <input  type="submit">
                     
                 </form>
-                <div>
-                    <a href="{% url 'wiki:index' %}">Home</a>
-                </div>
-                <div>
-                    <a href = "{% url 'wiki:create' %}">Create New Page</a>
-                </div>
-                <div>
-                    <a href = "{% url 'wiki:random' %}">Random Page</a>
-                </div>
-                {% block nav %}
-                {% endblock %}
+
+                
             </div>
-            <div class="main col-lg-10 col-md-9">
+            <div class="main col-lg-9 col-md-9">
                 {% block body %}
+                
                 {% endblock %}
             </div>
         </div>

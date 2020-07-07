@@ -1,11 +1,15 @@
 body {
     margin: 0;
     background-color: white;
+    font-family: Roboto;
+    height: 100%;
 }
 
 code {
     white-space: pre;
 }
+
+
 
 h1 {
     margin-top: 0px;
@@ -26,16 +30,51 @@ textarea {
     font-size: 15px;
     line-height: 15px;
 }
+.nav-active{
+    
+    border-bottom: 5px solid rgb(38, 162, 149);
+    font-size: 1.4rem;
+    padding:0px;
+
+    color: rgb(79, 78, 78);
+  
+    
+}
+.navbar{
+    background-color: rgb(245, 245, 245);
+    border-bottom: 1px solid rgb(38, 162, 149);
+}
+.nav-item a{
+    color: rgb(79, 78, 78);
+    font-size: 1.4rem;
+    padding:0px;
+    
+    
+}
+.nav-item{
+    /* margin-right: 20px;
+    margin-left: 20px; */
+}
+.navbar-brand h1 {
+    margin-top: 0px;
+    font-weight: 900;
+    font-size: 4rem;
+    color: rgb(38, 162, 149);
+    text-align: left;
+    font-family: monospace;
+}
 
 .sidebar {
-    background-color: #f0f0f0;
+    background-color: #ffffff;
     height: 100vh;
     padding: 20px;
+    margin-top: -16px;
+   
+}
+.sidebar h1:after{
+    border: 1px solid cyan;
 }
 
-.sidebar h2 {
-    margin-top: 5px;
-}
 
 #createpage{
     text-align: center;
@@ -56,9 +95,27 @@ textarea {
     position: relative;
 
 }
-label id_body{
-    margin-top: 20px;;
-}
+
 #notfound{
     color:red;
 }
+#show_list{
+    position: relative;
+    white-space:wrap;
+    columns: 100px 2;
+    column-gap: 40px;
+    column-rule-width: 1px;
+}
+#show_list li{
+    white-space: pre-line;
+    margin-bottom: 10px;
+    position: relative;
+    white-space: nowrap;
+    
+
+}
+#show_list li::marker {
+    color: red;
+    font-size: 1.5em;
+  }
+  

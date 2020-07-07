@@ -8,8 +8,8 @@
 {% block body %}
 
     {% load markdown_extras %}
-    <h1>{{title}}</h1>
-    {{ content | markdown | safe }}
+    <h1 class="display-3">{{title}}</h1>
+    
     <form action="{% url 'wiki:edit'  %}" method = "POST">
         {% csrf_token %}
         
@@ -19,6 +19,6 @@
         {%endwith%}
 
     </form>
-    
+    {{ content | markdown | safe }}
 
 {% endblock %}
