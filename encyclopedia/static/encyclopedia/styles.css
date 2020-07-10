@@ -7,8 +7,13 @@ body {
 
 code {
     white-space: pre;
+    background-color: rgb(230, 230, 230);
+    padding:16px;
+    overflow: auto;
 }
-
+pre{
+    
+}
 
 
 h1 {
