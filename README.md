@@ -23,18 +23,18 @@ nested li is defined in such a way that difference between new li and prev li mu
      
 7. Channel.js: **(Messages View,Sending Messages,Personal Touch)**
          
-       * On DOMContentLoaded:
-         * Disables send message button if message is empty. Send message button is active only if there is a message or any attachements.  
-         * Establish Socket connection between server and client.
-         * Send message: 
-            * Socket emit with user message , date, time and attachments (if any) to server. 
-         * Announce message: 
-            * Socket announce to client
-              * Stores current channel in local storage **(For Remembering Channel Feature)**
-              * Creates new divs for the new messages .
-              * Creates new divs to support delete message feature
-         * Display error message if user try to delete or send message to a channel which is not yet created.
-           
+      * On DOMContentLoaded:
+        * Disables send message button if message is empty. Send message button is active only if there is a message or any attachements.  
+        * Establish Socket connection between server and client.
+        * Send message: 
+           * Socket emit with user message , date, time and attachments (if any) to server. 
+        * Announce message: 
+           * Socket announce to client
+             * Stores current channel in local storage **(For Remembering Channel Feature)**
+             * Creates new divs for the new messages .
+             * Creates new divs to support delete message feature
+        * Display error message if user try to delete or send message to a channel which is not yet created.
+
   8. main.css:
 
       * CSS Styling for entire application.
