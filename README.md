@@ -3,6 +3,10 @@
 * item2 (0)
 * item3 (0)
 ----
+ * item1 (0)
+   * item2 (2)
+     * item3 (4)
+-----
 * item1 (0)
   * item2 (2)
     * item3 (4)
