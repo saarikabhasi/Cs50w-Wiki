@@ -18,7 +18,9 @@ register = template.Library()
 def markdown_parser(markdown):
     results=''
     ultag_is_open = False
+    sub_ultag_is_open =False    
     previouslinespace = 0
+    count =0
     
     for line in markdown.splitlines():
         
@@ -49,39 +51,80 @@ def markdown_parser(markdown):
             
             #handling non nested li
             #if previouslinespace == 0: #new list
-            if abs(currentlinespace-previouslinespace)== 0: 
+            if currentlinespace-previouslinespace== 0: 
                 print("HERE 1")
                 #new line is not a nested li
                 if ultag_is_open == True: #not a first li in the list
+                    print("HERE 1 only LI")
                     line = li.sub(r"<li>\2</li>",line) #add  li tag
                 else:
                     #first li in the list
-                    
+                    print("HERE 1 only UL")
                     line = li.sub(r"<ul>\n<li>\2</li>",line)
                     ultag_is_open = True #set ul tag to open
                 previouslinespace = currentlinespace
 
             
-            elif 2<=abs(currentlinespace-previouslinespace)<=5:
-                
+            elif 2<=currentlinespace-previouslinespace<=5:
+                print("HERE 2")
                 if ultag_is_open == True: #not a first li in the list
-                    line = li.sub(r"<li>\2</li>",line) #add  li tag
+                    if sub_ultag_is_open :
+                        print("HERE 2 only LI")
+                        print("count",count)
+                        if count>=1:
+                            line = li.sub(r"<ul><li>\2</li>\n",line) #add  li tag
+                        line = li.sub(r"<li>\2</li>\n",line) #add  li tag
+                    else:
+                        print("HERE 2 UL")
+                        firstline_space = previouslinespace
+                        sub_ultag_is_open = True
+                        count +=1
+                        line = li.sub(r"<ul>\n<li>\2</li>\n",line)
                 else:
                     #first li in the list
-                    
-                    line = li.sub(r"<ul>\n<li>\2</li>",line)
+                    print("HERE 2 only UL")
+                    line = li.sub(r"<ul>\n<li>\2</li>\n",line)
                     ultag_is_open = True #set ul tag to open
                 previouslinespace = currentlinespace
+
+            #currentlinespace<previouslinespace:
+            elif currentlinespace<previouslinespace:
+                print("if ul is open?",ultag_is_open)
+                
+                if ultag_is_open == True:
+                    
+                    line ="</ul>"+'\n'+line
+                    ultag_is_open = False
+                if  sub_ultag_is_open ==True:
+                    line ="</ul>"+'\n'+line
+                    sub_ultag_is_open =False
+                print("Number of ul tag to be closed" ,count)
+                if count >=1:
+                    for i in range(count):
+                        ultags ="</ul>"+'\n'
+                    line =ultags +line
+                    count =0     
+                print("Line before substitution",line) 
+                line = li.sub(r"<ul>\n<li>\2</li>",line)
+                ultag_is_open = True #set ul tag to open
+                previouslinespace = currentlinespace
+                print("Line after substitution",line) 
+                         
+
+
             else:
                 if previouslinespace == 0: #new list
+                    print("HERE 3")
                     if ultag_is_open == True: #not a first li in the list
-                        line = li.sub(r"<li>\2</li>",line) #add  li tag
+                        print("HERE 3 only LI")
+                        line = li.sub(r"<li>\2</li>\n",line) #add  li tag
                     else:
                         #first li in the list
-                        
-                        line = li.sub(r"<ul>\n<li>\2</li>",line)
+                        print("HERE 3 only UL")
+                        line = li.sub(r"<ul>\n<li>\2</li>\n",line)
                         ultag_is_open = True #set ul tag to open
                     previouslinespace = currentlinespace  
+                
 
             
 
@@ -89,8 +132,19 @@ def markdown_parser(markdown):
             print("if ul is open?",ultag_is_open)
             previouslinespace = 0
             if ultag_is_open == True:
-                line +="</ul>"+'\n'+line 
+                
+                line ="</ul>"+'\n'+line
                 ultag_is_open = False
+            if  sub_ultag_is_open ==True:
+                line ="</ul>"+'\n'+line
+                sub_ultag_is_open =False
+            print("Number of ul tag to be closed" ,count)
+            if count >=1:
+                
+                for i in range(count):
+                    ultags ="</ul>"+'\n'
+                line +=ultags
+                count =0               
 
 
         #     if previouslinespace == 0:
@@ -138,7 +192,7 @@ def markdown_parser(markdown):
         hr =  re.compile(r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+")
         if hr.search(line):
             print("HR",line)
-        line=hr.sub(r"<hr>", line)
+        line=hr.sub(r"<hr>\n", line)
 
         #Bold
         #bold = re.compile("\*\*[\w+(\[|\^&+\-%\/=!\:>\'\"\])\s+]*\*\*")
@@ -146,21 +200,21 @@ def markdown_parser(markdown):
         
         if bold.search(line):
             print("Bold",line)
-        line= bold.sub(r"<strong>\2</strong>", line)
+        line= bold.sub(r"<strong>\2</strong>\n", line)
 
         #Italic
         italic = re.compile(r"(\*|_)(?=\S)(.+?[*_]*)(?<=\S)\1")
        
         if italic.search(line):
             print("Italic",line)
-        line=italic.sub(r"<em>\2</em>", line)
+        line=italic.sub(r"<em>\2</em>\n", line)
 
         #Strikethrough
         strikethrough = re.compile(r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1")
         
         if strikethrough.search(line):
             print("Italic",line)
-        line=strikethrough.sub(r"<s>\2</s>", line)
+        line=strikethrough.sub(r"<s>\2</s>\n", line)
         
         
         
@@ -175,7 +229,7 @@ def markdown_parser(markdown):
             hashTagLen = heading_matches.end() - 1
             htmlTag = "h" + str(hashTagLen)
             content = line.strip()[(hashTagLen + 1):]
-            results += "<" + htmlTag + ">" + content + "</" + htmlTag + ">"
+            results += "<" + htmlTag + ">" + content + "</" + htmlTag + ">"+'\n'
         
         
         else:
