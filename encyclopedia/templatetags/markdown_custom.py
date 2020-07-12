@@ -19,6 +19,7 @@ def markdown_parser(markdown):
     results=''
     ultag_is_open = False
     sub_ultag_is_open =False    
+    ol_is_open =False
     previouslinespace = 0
     count =0
     
@@ -39,9 +40,23 @@ def markdown_parser(markdown):
         #working pattern
         #if ifultag==False:
         
-        li = re.compile(r"^\s*(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)(?<=$)",re.MULTILINE)
+
+        ordered_list = re.compile(r"^\s*(\d+\.\s*)(.+?)(?<=$)")
+        if ordered_list.search(line):
+            if ol_is_open == False: 
+                line = ordered_list.sub(r"<ol><li>\2</li>",line)
+                ol_is_open =True
+            else:
+                line = ordered_list.sub(r"<li>\2</li>",line)
+        else:
+            if ol_is_open ==True:
+                line ="</ol>"+'\n'+line
+                oltag_is_open =False
+
+
+        unordered_list = re.compile(r"^\s*(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)(?<=$)",re.MULTILINE)
         print("line",line)
-        if li.search(line):
+        if unordered_list.search(line):
             #nested li is defined in such a way that difference between 
             # new li and prev li must be diff>=2 and diff<=5 spaces
             print ('LIST exists')
@@ -56,11 +71,11 @@ def markdown_parser(markdown):
                 #new line is not a nested li
                 if ultag_is_open == True: #not a first li in the list
                     print("HERE 1 only LI")
-                    line = li.sub(r"<li>\2</li>",line) #add  li tag
+                    line = unordered_list.sub(r"<li>\2</li>",line) #add  li tag
                 else:
                     #first li in the list
                     print("HERE 1 only UL")
-                    line = li.sub(r"<ul>\n<li>\2</li>",line)
+                    line = unordered_list.sub(r"<ul>\n<li>\2</li>",line)
                     ultag_is_open = True #set ul tag to open
                 previouslinespace = currentlinespace
 
@@ -72,23 +87,23 @@ def markdown_parser(markdown):
                         print("HERE 2 only LI")
                         print("count",count)
                         if count>=1:
-                            line = li.sub(r"<ul><li>\2</li>\n",line) #add  li tag
-                        line = li.sub(r"<li>\2</li>\n",line) #add  li tag
+                            line = unordered_list.sub(r"<ul><li>\2</li>\n",line) #add  li tag
+                        line = unordered_list.sub(r"<li>\2</li>\n",line) #add  li tag
                     else:
                         print("HERE 2 UL")
-                        firstline_space = previouslinespace
+                        #firstline_space = previouslinespace
                         sub_ultag_is_open = True
                         count +=1
-                        line = li.sub(r"<ul>\n<li>\2</li>\n",line)
+                        line = unordered_list.sub(r"<ul>\n<li>\2</li>\n",line)
                 else:
                     #first li in the list
                     print("HERE 2 only UL")
-                    line = li.sub(r"<ul>\n<li>\2</li>\n",line)
+                    line = unordered_list.sub(r"<ul>\n<li>\2</li>\n",line)
                     ultag_is_open = True #set ul tag to open
                 previouslinespace = currentlinespace
 
             #currentlinespace<previouslinespace:
-            elif currentlinespace<previouslinespace:
+            else: #currentlinespace<previouslinespace
                 print("if ul is open?",ultag_is_open)
                 
                 if ultag_is_open == True:
@@ -105,25 +120,25 @@ def markdown_parser(markdown):
                     line =ultags +line
                     count =0     
                 print("Line before substitution",line) 
-                line = li.sub(r"<ul>\n<li>\2</li>",line)
+                line = unordered_list.sub(r"<ul>\n<li>\2</li>",line)
                 ultag_is_open = True #set ul tag to open
                 previouslinespace = currentlinespace
                 print("Line after substitution",line) 
                          
 
 
-            else:
-                if previouslinespace == 0: #new list
-                    print("HERE 3")
-                    if ultag_is_open == True: #not a first li in the list
-                        print("HERE 3 only LI")
-                        line = li.sub(r"<li>\2</li>\n",line) #add  li tag
-                    else:
-                        #first li in the list
-                        print("HERE 3 only UL")
-                        line = li.sub(r"<ul>\n<li>\2</li>\n",line)
-                        ultag_is_open = True #set ul tag to open
-                    previouslinespace = currentlinespace  
+            # else:
+            #     if previouslinespace == 0: #new list
+            #         print("HERE 3")
+            #         if ultag_is_open == True: #not a first li in the list
+            #             print("HERE 3 only LI")
+            #             line = unordered_list.sub(r"<li>\2</li>\n",line) #add  li tag
+            #         else:
+            #             #first li in the list
+            #             print("HERE 3 only UL")
+            #             line = unordered_list.sub(r"<ul>\n<li>\2</li>\n",line)
+            #             ultag_is_open = True #set ul tag to open
+            #         previouslinespace = currentlinespace  
                 
 
             
@@ -138,6 +153,7 @@ def markdown_parser(markdown):
             if  sub_ultag_is_open ==True:
                 line ="</ul>"+'\n'+line
                 sub_ultag_is_open =False
+         
             print("Number of ul tag to be closed" ,count)
             if count >=1:
                 

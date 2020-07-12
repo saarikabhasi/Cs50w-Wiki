@@ -7,8 +7,8 @@
 
 {% block body %}
 
-    {% load markdown_extras %}
-    {% load markdown_custom %}
+
+    {% load md %}
     <h1 class="display-3">{{title}}</h1>
     
     <form action="{% url 'wiki:edit'  %}" method = "POST">
@@ -20,6 +20,6 @@
         {%endwith%}
 
     </form>
-    {{ content | markdown_parser |safe }}
+    {{ content|markdown|safe }}
 
 {% endblock %}
