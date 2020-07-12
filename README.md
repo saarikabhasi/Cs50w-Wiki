@@ -39,7 +39,7 @@ nested li is defined in such a way that difference between new li and prev li mu
 
       * CSS Styling for entire application.
 
-  9. requirements.txt:
+  9.requirements.txt:
 
       * Information about the Python packages that are used by the application.
            
