@@ -4,20 +4,30 @@ body {
     font-family: Roboto;
     height: 100%;
 }
-
+pre{
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    height: auto;
+    width:70%;
+}
 pre code {
     white-space: pre;
-    background-color: rgb(250, 249, 249);
-    padding:10px;
+    background-color: rgb(220, 220, 220); 
+    /* padding:10px; */
     overflow: visible;
-    color: black;
+    color: rgb(45, 44, 44);
     display: inline;
-    border-radius: 6px;
+    border-radius: 60px;
 }
 pre >code{
     word-break: normal;
     white-space: pre;
     background: transparent;  
+    
 }
 
 

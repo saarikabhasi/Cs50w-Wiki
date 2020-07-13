@@ -25,7 +25,8 @@ class markdown(object):
         # Regex pattern 
         self.patterns = {
             "heading" :"#+\s", #heading
-            "ul": r"^\s*(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)(?<=$)", #unordered list
+            #"ul": r"^\s*(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)(?<=$)",
+            "ul":r"^\s*(\-\s|\*\s)([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
             "ol":r"^\s*(\d+\.\s*)(.+?)(?<=$)",  # ordered list
             "pre":r"\s{4,}(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\s]+?)(?<=$)", #pre tag
             "hr":r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+", #HR
@@ -33,8 +34,10 @@ class markdown(object):
             "italic" :r"(\*|_)(?=\S)(.+?[*_]*)(?<=\S)\1", #italic
             "bold_and_italic":r"\*\*\*(.+?)\*\*\*",
             "strikethrough" :r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1", #strikethrough
-            "code":r"```((.+?\n)+)", #blocked code
-            #code single line:(?:`{3})+(?<=\S)(\w*)(?:`{3})+
+            #"code":r"```((.+?\n)+)", #blocked code
+            #code single line:\s*(`{3})+(\s*\w*)(\s)*
+            #code single line:\s*(`{3})+(\s*\w*[(#\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)
+            "code":r"\s*(`{3})+(\s*\w*[(#\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)",
 
             
         }
@@ -165,26 +168,33 @@ class markdown(object):
     # markdown to html main function
     def markdown_parser(self,markdown_string):
         codeline =""
+        lines =""
         for line in markdown_string.splitlines():
             print("LINE",line)
-            print("self.code_area Before test",self.code_area )
+            print("self.code_area Before test",self.code_area)
+            code = re.compile(self.patterns["code"],re.MULTILINE)
+            print("CODE",code)
+            if code.match(line):
+                print("CODE MATCH ",line)
 
             if self.code_area == True:
                 if "```" in line:
                     self.code_area = False
-                    line = codeline+"</code></pre>"
-                    
-                    codeline=""
+                    codeline +="</code></pre>"
+                    print("CLOSING line:",codeline)
+                    #codeline=""
                 else:
-                    codeline +=line+'\n'
+                    codeline+='\n'+line+'\n'
                     print("line after change",codeline)
                     continue
             else:
                 if "```" in line:
                     self.code_area = True
-                    codeline = "<pre><code>"
+                    codeline += "<pre><code>"
+                    continue
+                    
             print("self.code_area After TEst",self.code_area )
-            if self.code_area ==False:
+            if self.code_area ==False and len(codeline) == 0:
                 #heading    
                 heading = re.compile(self.patterns["heading"]) 
                 heading_matches = heading.search(line.strip())
@@ -259,6 +269,7 @@ class markdown(object):
             else:
                 
                 self.results += '\n'+ codeline +'\n'
+                codeline =""
  
             print("RESULTS",self.results)  
         return self.results
