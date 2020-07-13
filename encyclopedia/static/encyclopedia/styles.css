@@ -5,14 +5,19 @@ body {
     height: 100%;
 }
 
-code {
+pre code {
     white-space: pre;
-    background-color: rgb(230, 230, 230);
-    padding:16px;
-    overflow: auto;
+    background-color: rgb(250, 249, 249);
+    padding:10px;
+    overflow: visible;
+    color: black;
+    display: inline;
+    border-radius: 6px;
 }
-pre{
-    
+pre >code{
+    word-break: normal;
+    white-space: pre;
+    background: transparent;  
 }
 
 
