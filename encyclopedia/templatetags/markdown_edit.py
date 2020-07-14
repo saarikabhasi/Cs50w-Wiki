@@ -13,22 +13,24 @@ import re,sys
 class markdown(object):
   
     def __init__(self,value):
-        self.results=''
-        self.ultag_is_open = False
-        self.sub_ultag_is_open =False    
-        self.ol_tag_is_open =False
-        self.sub_oltag_is_open = False
+        self.results='' #Stores final result
         self.previouslinespace = 0
-        self.count =0
         self.markdown_string = value
         self.ol_current_line_space = 0
-        self.number_of_ol_list = 0
         self.previous_ol_linespace  = 0
-        self.tags = {
-            "ul":["ultag_is_open","sub_ultag_is_open","count"],
-            "ol":["ol_tag_is_open","sub_ultag_is_open","number_of_ol_list"]
+
+        self.list_variable = {
+            "ul":{
+                "ultag_is_open":False,
+                "sub_ultag_is_open":False,
+                "number_of_list": 0 
+                },
+            "ol":{
+                "ol_tag_is_open":False,
+                "sub_oltag_is_open":False,
+                "number_of_list":0
+            }
         }
-        
     
 
         # Regex pattern 
@@ -66,70 +68,26 @@ class markdown(object):
 
         }
 
-    # close all the opened tags of unordered list
+    # close all the opened tags of list
     def close_list(self,line,type):
         
-        # if type in tags.keys():
-        #     for var in range(2):
-        #         variable = tags[type][var]
-        #         print("VAR",variable)
-        #         if self.tags[type][var]== True:    
-        #             line = "</" + type + ">"+'\n'+line
-        #             #line ="</ul>"+'\n'+line
-        #             self.variable = False
-            
-        #     # if  self.sub_ultag_is_open ==True:
-        #     #     line = "</" + type + ">"+'\n'+line
-        #     #     # line ="</ul>"+'\n'+line
-        #     #     self.sub_ultag_is_open =False
-        #     # if self.count >=1:
-        #     sub_list = tags[type][2]
-        #     if self.sub_list>= 1:
-        #         for i in range(tags[type][2]):
-        #             ultags = "</" + type + ">"+'\n'
-        #             #ultags ="</ul>"+'\n'
+        if type in self.list_variable.keys():
+            for var in self.list_variable[type]:
 
-        #         line =ultags +line
-        #         self.sub_list =0  
-        if type == "ul":
-            if self.ultag_is_open == True:    
-                line = "</" + type + ">"+'\n'+line
-                #line ="</ul>"+'\n'+line
-                self.ultag_is_open = False
+                if self.list_variable[type][var]== True:    
+                    line = "</" + type + ">"+'\n'+line
+                    self.list_variable[type][var] = False
 
-            if self.sub_ultag_is_open == True:
-                line = "</" + type + ">"+'\n'+line
-                line ="</ul>"+'\n'+line
-                self.sub_ultag_is_open =False
-                    
-            if self.count >=1:
-                for _ in range(self.count):
-                    ultags = "</" + type + ">"+'\n'
-                    #ultags ="</ul>"+'\n'
+            if self.list_variable[type]["number_of_list"] >=1:
+                for _ in range(int(self.list_variable[type][var])):
+                    closingTags = "</" + type + ">"+'\n'
 
-                line =ultags +line
-                self.count =0  
-        else:
-            if self.ol_tag_is_open == True: 
-                line = "</" + type + ">"+'\n'+line
-                self.ol_tag_is_open = False
 
-            if  self.sub_oltag_is_open ==True:
-                line = "</" + type + ">"+'\n'+line
-                # line ="</ul>"+'\n'+line
-                self.sub_oltag_is_open =False
-                    
-            if self.number_of_ol_list >=1:
-                for _ in range(self.number_of_ol_list):
-                    oltags = "</" + type + ">"+'\n'
-                    #ultags ="</ul>"+'\n'
-
-                line =oltags + line
-                self.number_of_ol_list =0  
-        
-            
-
+                line =closingTags + line
+                self.list_variable[type]["number_of_list"] =0  
         return line   
+        
+         
 
     #ordered list
     def ol_list(self,line,ordered_list):
@@ -141,10 +99,10 @@ class markdown(object):
 
         if current_ol_line_space-self.previous_ol_linespace == 0 : 
       
-            if self.ol_tag_is_open == False:
+            if self.list_variable["ol"]["ol_tag_is_open"] == False:
                 
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-                self.ol_tag_is_open = True
+                self.list_variable["ol"]["ol_tag_is_open"] = True
                 self.previous_ol_linespace = current_ol_line_space
 
             else:
@@ -153,50 +111,51 @@ class markdown(object):
         #nested list    
         elif 3<=current_ol_line_space-self.previous_ol_linespace <=6  : 
 
-            if self.ol_tag_is_open == True: #not a first ordered list
+            if self.list_variable["ol"]["ol_tag_is_open"] == True: #not a first ordered list
 
-                if self.sub_oltag_is_open :
-                    if self.number_of_ol_list >= 1:
+                if self.list_variable["ol"]["sub_oltag_is_open"] :
+                    if self.list_variable["ol"]["number_of_list"] >= 1:
                         line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line) 
                     line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line) 
                 else:
                    
-                    self.sub_oltag_is_open = True
-                    self.number_of_ol_list +=1
+                    self.list_variable["ol"]["sub_oltag_is_open"] = True
+                    self.list_variable["ol"]["number_of_list"] +=1
                     line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
             else:
 
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-                self.ol_tag_is_open = True 
+                self.list_variable["ol"]["ol_tag_is_open"] = True 
             self.previous_ol_linespace = current_ol_line_space
 
         elif -6<=current_ol_line_space-self.previous_ol_linespace<=-3:
             oltags =""
 
-            if self.number_of_ol_list >=1:
-                for _ in range(self.number_of_ol_list):
+            if self.list_variable["ol"]["number_of_list"] >=1:
+                print(self.list_variable["ol"]["number_of_list"],type(self.list_variable["ol"]["number_of_list"]))
+                for _ in range(int(self.list_variable["ol"]["number_of_list"])-1):
                     oltags = "</ol>"
   
-                self.number_of_ol_list =0  
+                self.list_variable["ol"]["number_of_list"] =0  
 
-            if self.ol_tag_is_open == True: #not a first ordered list
+            if self.list_variable["ol"]["ol_tag_is_open"] == True: #not a first ordered list
 
-                if self.sub_oltag_is_open :
-                    self.number_of_ol_list +=1
+                if self.list_variable["ol"]["sub_oltag_is_open"] :
+                    #self.list_variable["ol"]["number_of_list"] +=1
                     line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line) 
 
                 else:
                    
-                    self.sub_oltag_is_open = True
-                    self.number_of_ol_list +=1
+                    self.list_variable["ol"]["sub_oltag_is_open"] = True
+                    self.list_variable["ol"]["number_of_list"] +=1
                     line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
            
                     
-                line =oltags + line
+                line =line+oltags
             else:
 
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-                self.ol_tag_is_open = True 
+                self.list_variable["ol"]["ol_tag_is_open"] = True 
             self.previous_ol_linespace = current_ol_line_space
 
         else:
@@ -204,7 +163,7 @@ class markdown(object):
        
             line =self.close_list(line,"ol")
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-            self.ol_tag_is_open = True #set ul tag to open
+            self.list_variable["ol"]["ol_tag_is_open"] = True #set ul tag to open
             self.previous_ol_linespace = current_ol_line_space
 
         return line   
@@ -215,37 +174,37 @@ class markdown(object):
     #unordered list
     def list(self,line,unordered_list):
         currentlinespace = len(line)-len(line.lstrip())
-        
+
         #non nested list
         if currentlinespace-self.previouslinespace == 0: 
-
-            if self.ultag_is_open == True:                       
+            
+            if self.list_variable["ul"]["ultag_is_open"] == True:                       
                 line = unordered_list.sub(self.substitute_patterns["li_tag_of_ul"],line)
 
             else:
                 #first li in the list
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
-                self.ultag_is_open = True #set ul tag to open
+                self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
                 self.previouslinespace = currentlinespace
 
         #nested list    
         elif 2<=currentlinespace-self.previouslinespace <=5: 
            
-            if self.ultag_is_open == True: #not a first li in the list
+            if self.list_variable["ul"]["ultag_is_open"] == True: #not a first li in the list
 
-                if self.sub_ultag_is_open :
-                    if self.count >= 1:
+                if self.list_variable["ul"]["sub_ultag_is_open"] :
+                    if self.list_variable["ul"]["number_of_list"] >= 1:
                         line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line) 
                     line = unordered_list.sub(self.substitute_patterns["li_tag_of_ul"],line) 
                 else:
                    
-                    self.sub_ultag_is_open = True
-                    self.count +=1
+                    self.list_variable["ul"]["sub_ultag_is_open"] = True
+                    self.list_variable["ul"]["number_of_list"] +=1
                     line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
             else:
 
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
-                self.ultag_is_open = True 
+                self.list_variable["ul"]["ultag_is_open"] = True 
             self.previouslinespace = currentlinespace
 
         #nested new list
@@ -255,7 +214,7 @@ class markdown(object):
             line =self.close_list(line,"ul")
 
             line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
-            self.ultag_is_open = True #set ul tag to open
+            self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
             self.previouslinespace = currentlinespace
 
         return line   
@@ -385,7 +344,7 @@ class markdown(object):
                     line = self.ol_list(line,ordered_list)
 
                 else:
-                    if self.ol_tag_is_open == True:
+                    if self.list_variable["ol"]["ol_tag_is_open"] == True:
                         #if ordered_list.search(line).group(1)- self.number_of_ol_list !=1:
 
                         if len(line)-(len(line)-len(line.lstrip())) == self.previous_ol_linespace or heading_matches or hr_match:
