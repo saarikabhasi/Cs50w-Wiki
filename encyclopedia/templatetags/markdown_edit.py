@@ -46,7 +46,7 @@ class markdown(object):
             "bold":r"<strong>\2</strong>", #bold
             "italic":r"<em>\2</em>", #italic
             "strikethrough":r"<s>\2</s>", #strikethrough
-            "bold_and_italic":r"<strong><em>\2</em></strong>", #Bold and italic
+            "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
             "single_line_fenced_code":r"<pre><code>\2</code></pre>",
             
 
@@ -230,16 +230,20 @@ class markdown(object):
                 else:
                     line = self.close_list(line) #close all opened list tags
                     self.previouslinespace = 0
-
-                #HR tag
-                hr =  re.compile(self.patterns["hr"])
-                if hr.search(line): 
-                    line = self.hr(hr,line)
-
+                
                 #bold and italic
                 bold_and_italic = re.compile(self.patterns["bold_and_italic"])
                 if bold_and_italic.search(line):
                     line = self.bold_and_italic(bold_and_italic,line)
+                  
+                    
+                #HR tag
+                hr =  re.compile(self.patterns["hr"])
+                if hr.search(line): 
+                    line = self.hr(hr,line)
+                    
+
+
                     
                 #Bold tag
                 bold = re.compile(self.patterns["bold"])
