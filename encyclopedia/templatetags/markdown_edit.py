@@ -16,11 +16,16 @@ class markdown(object):
         self.results=''
         self.ultag_is_open = False
         self.sub_ultag_is_open =False    
-        self.ol_is_open =False
+        self.ol_tag_is_open =False
         self.previouslinespace = 0
         self.count =0
         self.markdown_string = value
+        self.ol_current_line_space = 0
+        self.number_of_ol_list = 0
+        self.previous_ol_linespace  = 0
         
+        
+    
 
         # Regex pattern 
         self.patterns = {
@@ -35,51 +40,78 @@ class markdown(object):
             "bold_and_italic":r"\*\*\*(.+?)\*\*\*",
             "strikethrough" :r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1", #strikethrough
             "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+(?<=$)", #Single line fenced code block
-            "multi_line_fenced_code": r"\s*(`{3})",#Muli line fenced code block
+            "multi_line_fenced_code": r"\s*(`{3})",#Muliple line fenced code block
             
         }
         # HTML tags 
         self.substitute_patterns ={
             "li_tag":r"\n<li>\2</li>\n", #li tag
             "ul_li_tag":r"\n<ul>\n<li>\2</li>\n", # new un ordered list tag
+            "ol_li_tag":r"\n<ol start = \1>\n<li>\2</li>\n", #new ordered list
             "hr_tag" : r"\n<hr>\n", #line break tag 
             "bold":r"<strong>\2</strong>", #bold
             "italic":r"<em>\2</em>", #italic
             "strikethrough":r"<s>\2</s>", #strikethrough
             "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
-            "single_line_fenced_code":r"<pre><code>\2</code></pre>",
+            "single_line_fenced_code":r"<pre><code>\2</code></pre>",# Single line fenced code
             
 
         }
 
     # close all the opened tags of unordered list
-    def close_list(self,line):
+    def close_list(self,line,type):
 
-        if self.ultag_is_open == True:    
+        if type == "ul":
+            if self.ultag_is_open == True:    
+                line = "</" + type + ">"+'\n'+line
+                #line ="</ul>"+'\n'+line
+                self.ultag_is_open = False
 
-            line ="</ul>"+'\n'+line
-            self.ultag_is_open = False
+            if  self.sub_ultag_is_open ==True:
+                line = "</" + type + ">"+'\n'+line
+                # line ="</ul>"+'\n'+line
+                self.sub_ultag_is_open =False
+                    
+            if self.count >=1:
+                for _ in range(self.count):
+                    ultags = "</" + type + ">"+'\n'
+                    #ultags ="</ul>"+'\n'
 
-        if  self.sub_ultag_is_open ==True:
-
-            line ="</ul>"+'\n'+line
-            self.sub_ultag_is_open =False
-                
-        if self.count >=1:
-            for _ in range(self.count):
-                ultags ="</ul>"+'\n'
-
-            line =ultags +line
-            self.count =0  
+                line =ultags +line
+                self.count =0  
+        else:
+            if self.ol_tag_is_open == True: 
+                line = "</" + type + ">"+'\n'+line
+                self.ol_tag_is_open = False
 
         return line   
 
+    #ordered list
+    def ol_list(self,line,ordered_list):
+        
+        #First Ordered list
+        # 3 till 6
+    
+
+      
+        if self.ol_tag_is_open == False:
+    
+            line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
+            self.ol_tag_is_open = True
+            self.previous_ol_linespace = len(line)-len(line.lstrip())
+
+        else:
+            line = ordered_list.sub(self.substitute_patterns["li_tag"],line)
+
+
+        self.number_of_ol_list += 1
+        return line
     #unordered list
     def list(self,line,unordered_list):
-        self.currentlinespace = len(line)-len(line.lstrip())
+        currentlinespace = len(line)-len(line.lstrip())
         
         #non nested list
-        if self.currentlinespace-self.previouslinespace == 0: 
+        if currentlinespace-self.previouslinespace == 0: 
 
             if self.ultag_is_open == True:                       
                 line = unordered_list.sub(self.substitute_patterns["li_tag"],line)
@@ -88,10 +120,10 @@ class markdown(object):
                 #first li in the list
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
                 self.ultag_is_open = True #set ul tag to open
-                self.previouslinespace = self.currentlinespace
+                self.previouslinespace = currentlinespace
 
         #nested list    
-        elif 2<=self.currentlinespace-self.previouslinespace<=5: 
+        elif 2<=currentlinespace-self.previouslinespace <=5: 
            
             if self.ultag_is_open == True: #not a first li in the list
 
@@ -108,17 +140,17 @@ class markdown(object):
 
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
                 self.ultag_is_open = True 
-            self.previouslinespace = self.currentlinespace
+            self.previouslinespace = currentlinespace
 
         #nested new list
-        else: #self.currentlinespace < self.previouslinespace:
+        else: #currentlinespace < self.previouslinespace:
 
             #close all previous nested list
-            line =self.close_list(line)
+            line =self.close_list(line,"ul")
 
             line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
             self.ultag_is_open = True #set ul tag to open
-            self.previouslinespace = self.currentlinespace
+            self.previouslinespace = currentlinespace
 
         return line   
                          
@@ -162,6 +194,7 @@ class markdown(object):
         line = code.sub(self.substitute_patterns["single_line_fenced_code"],line)
         return line
     
+
 
     # markdown to html main function
     def markdown_parser(self,markdown_string):
@@ -221,15 +254,6 @@ class markdown(object):
                 if heading_matches != None:
                     
                     line=self.heading(heading_matches,line)
-
-                #unordered list
-                unordered_list = re.compile(self.patterns["ul"],re.MULTILINE)
-
-                if unordered_list.search(line):
-                    line = self.list(line,unordered_list)
-                else:
-                    line = self.close_list(line) #close all opened list tags
-                    self.previouslinespace = 0
                 
                 #bold and italic
                 bold_and_italic = re.compile(self.patterns["bold_and_italic"])
@@ -237,14 +261,38 @@ class markdown(object):
                     line = self.bold_and_italic(bold_and_italic,line)
                   
                     
+
                 #HR tag
                 hr =  re.compile(self.patterns["hr"])
-                if hr.search(line): 
+                hr_match = hr.search(line)
+                if hr_match: 
                     line = self.hr(hr,line)
-                    
+
+                #ordered list
+                ordered_list = re.compile(self.patterns["ol"],re.MULTILINE)
+                if ordered_list.search(line):
+                       
+                    line = self.ol_list(line,ordered_list)
+
+                else:
+                    if self.ol_tag_is_open == True:
+                        #if ordered_list.search(line).group(1)- self.number_of_ol_list !=1:
+                        if len(line)-(len(line)-len(line.lstrip())) == self.ol_current_line_space or heading_matches or hr_match:
+                            line = self.close_list(line,"ol")
+                            self.ol_current_line_space = 0
 
 
-                    
+
+                #unordered list
+                unordered_list = re.compile(self.patterns["ul"],re.MULTILINE)
+
+                if unordered_list.search(line):
+                    line = self.list(line,unordered_list)
+                else:
+                    line = self.close_list(line,"ul") #close all opened list tags
+                    self.previouslinespace = 0
+                
+    
                 #Bold tag
                 bold = re.compile(self.patterns["bold"])
                 if bold.search(line):
@@ -283,7 +331,7 @@ class markdown(object):
                     else:
                         self.results += '\n'+ line+'\n'
             else:
-                
+                #Fenced Code block
                 self.results += '\n'+ codeline +'\n'
                 codeline =""
  
