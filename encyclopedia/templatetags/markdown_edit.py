@@ -34,10 +34,8 @@ class markdown(object):
         # Regex pattern 
         self.patterns = {
             "heading" :"#+\s", #heading
-            #"ul": r"^\s*(\-\s|\*\s)([\w+(\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)(?<=$)",
             "ul":r"^\s*(\-\s|\*\s)([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
             "ol":r"^\s*(\d+)(\.|\))\s*(.+?)(?<=$)",  # ordered list
-            "pre":r"^\s{4}(.*?)(?<=$)", #pre tag
             "hr":r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+", #HR
             "bold":r"(\*\*|__)(?=\S)(.+?[*_]*)(?<=\S)\1", #bold
             "italic" :r"(\*|_)(?=\S)(.+?[*_]*)(?<=\S)\1", #italic
@@ -49,10 +47,13 @@ class markdown(object):
         }
         # HTML tags 
         self.substitute_patterns ={
-            "li_tag_of_ul":r"\n<li>\2</li>\n", #li tag of un-ordered list
+            
             "ul_li_tag":r"\n<ul>\n<li>\2</li>\n", # new un ordered list tag
+            "li_tag_of_ul":r"\n<li>\2</li>\n", #li tag of un-ordered list
+
             "ol_li_tag":r"\n<ol start = \1>\n<li>\3</li>\n",#new ordered list
             "li_tag_of_ol":r"\n<li>\3</li>\n",  #li tag of ordered list
+
             "hr_tag" : r"\n<hr>\n", #line break tag 
             "bold":r"<strong>\2</strong>", #bold
             "italic":r"<em>\2</em>", #italic
@@ -60,7 +61,7 @@ class markdown(object):
             "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
             "single_line_fenced_code":r"<pre><code>\2</code></pre>",# Single line fenced code
             "a_links":r"<a href =\4>\2</a>", #links
-            "pre":r"<pre><code>\1</code></pre>",
+ 
             
 
         }
@@ -96,9 +97,9 @@ class markdown(object):
                 #line ="</ul>"+'\n'+line
                 self.ultag_is_open = False
 
-            if  self.sub_ultag_is_open ==True:
+            if self.sub_ultag_is_open == True:
                 line = "</" + type + ">"+'\n'+line
-                # line ="</ul>"+'\n'+line
+                line ="</ul>"+'\n'+line
                 self.sub_ultag_is_open =False
                     
             if self.count >=1:
@@ -123,7 +124,7 @@ class markdown(object):
                     oltags = "</" + type + ">"+'\n'
                     #ultags ="</ul>"+'\n'
 
-                line =oltags +line
+                line =oltags + line
                 self.number_of_ol_list =0  
         
             
@@ -138,10 +139,10 @@ class markdown(object):
         current_ol_line_space = len(line)-len(line.lstrip())
         #non nested list
 
-        if current_ol_line_space-self.previous_ol_linespace == 0: 
+        if current_ol_line_space-self.previous_ol_linespace == 0 : 
       
             if self.ol_tag_is_open == False:
-        
+                
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
                 self.ol_tag_is_open = True
                 self.previous_ol_linespace = current_ol_line_space
@@ -150,7 +151,7 @@ class markdown(object):
                 line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line)
 
         #nested list    
-        elif 3<=current_ol_line_space-self.previous_ol_linespace <=6: 
+        elif 3<=current_ol_line_space-self.previous_ol_linespace <=6  : 
 
             if self.ol_tag_is_open == True: #not a first ordered list
 
@@ -168,9 +169,40 @@ class markdown(object):
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
                 self.ol_tag_is_open = True 
             self.previous_ol_linespace = current_ol_line_space
-        else:
-            line =self.close_list(line,"ol")
 
+        elif -6<=current_ol_line_space-self.previous_ol_linespace<=-3:
+            oltags =""
+
+            if self.number_of_ol_list >=1:
+                for _ in range(self.number_of_ol_list):
+                    oltags = "</ol>"
+  
+                self.number_of_ol_list =0  
+
+            if self.ol_tag_is_open == True: #not a first ordered list
+
+                if self.sub_oltag_is_open :
+                    self.number_of_ol_list +=1
+                    line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line) 
+
+                else:
+                   
+                    self.sub_oltag_is_open = True
+                    self.number_of_ol_list +=1
+                    line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
+           
+                    
+                line =oltags + line
+            else:
+
+                line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
+                self.ol_tag_is_open = True 
+            self.previous_ol_linespace = current_ol_line_space
+
+        else:
+           
+       
+            line =self.close_list(line,"ol")
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
             self.ol_tag_is_open = True #set ul tag to open
             self.previous_ol_linespace = current_ol_line_space
@@ -272,12 +304,7 @@ class markdown(object):
     def links(self,link, line):
         line = link.sub(self.substitute_patterns["a_links"],line)
         return line
-    #pre lines
-    def pre_line(self,pre,line):
-        line = pre.sub(self.substitute_patterns["pre"],line)
-        return line
-
-
+    
     # markdown to html main function
     def markdown_parser(self,markdown_string):
         codeline =""
@@ -289,7 +316,7 @@ class markdown(object):
         for line in markdown_string.splitlines():
             multi_line_code_space = 0
             single_line_fenced_code = re.compile(self.patterns["single_line_fenced_code"],re.MULTILINE)
-            print("Line:",line)
+
             #check if the line has single line code block
             if single_line_fenced_code.search(line) and multi_line_fenced_code_active ==False:
                 single_line_fenced_code_active ==True
@@ -350,13 +377,6 @@ class markdown(object):
                 if hr_match: 
                     line = self.hr(hr,line)
                 
-                #pre
-                pre = re.compile(self.patterns["pre"])
-                
-                if pre.search(line):
-                    print("Before PRE",line)
-                    line += self.pre_line(pre,line)
-                    print("AFTER PRE",line)
 
                 #ordered list
                 ordered_list = re.compile(self.patterns["ol"])
@@ -367,9 +387,11 @@ class markdown(object):
                 else:
                     if self.ol_tag_is_open == True:
                         #if ordered_list.search(line).group(1)- self.number_of_ol_list !=1:
+
                         if len(line)-(len(line)-len(line.lstrip())) == self.previous_ol_linespace or heading_matches or hr_match:
                             line = self.close_list(line,"ol")
                             self.ol_current_line_space = 0
+                            self.previous_ol_linespace =0
 
 
 
@@ -433,7 +455,7 @@ class markdown(object):
                             self.results += '\n'+ line +'\n'
                     else:
                         self.results += '\n'+ line+'\n'
-                    print("RESULTS:",self.results)
+
             else:
                 #Fenced Code block
                 self.results += '\n'+ codeline +'\n'
