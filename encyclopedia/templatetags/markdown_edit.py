@@ -1,14 +1,9 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-import re,sys
-
-# register = template.Library()
-# pre inside a li 
+import re
 
 
-# @register.filter()
-# @stringfilter
 
 class markdown(object):
   
@@ -132,7 +127,7 @@ class markdown(object):
             oltags =""
 
             if self.list_variable["ol"]["number_of_list"] >=1:
-                print(self.list_variable["ol"]["number_of_list"],type(self.list_variable["ol"]["number_of_list"]))
+
                 for _ in range(int(self.list_variable["ol"]["number_of_list"])-1):
                     oltags = "</ol>"
   
@@ -391,29 +386,15 @@ class markdown(object):
                     line = self.links(link,line)
                 
 
-    
                 #Making sure that an empty line is not added
-            
+
                 if line.strip() != "": #check if line is not empty
-                    if "<ul>" not in line and "</ul>" not in line:
-                        if "<li>" not in line and "</li>" not in line:
-                            if "<ol>" not in line and "</ol>" not in line:
-                                if "<h" not in line and "<h" not in line:
-                                    if "<code>" not in line and "</code>" not in line:
-                                        if "<pre>" not in line and "</pre>" not in line:
-                                            self.results+='\n'+"<p>"+line +"</p>"+'\n'
-                                        else:
-                                            self.results += '\n'+ codeline +'\n'
-                                    else:
-                                        self.results += '\n'+ codeline +'\n'
-                                else:
-                                    self.results += '\n'+ line +'\n'
-                            else:
-                                self.results += '\n'+ line +'\n'
-                        else:
-                            self.results += '\n'+ line +'\n'
+                    pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>)")
+                    if pat.search(line):
+                        self.results += '\n'+ line +'\n'
                     else:
-                        self.results += '\n'+ line+'\n'
+                        self.results+='\n'+"<p>"+line +"</p>"+'\n'
+                   
 
             else:
                 #Fenced Code block
