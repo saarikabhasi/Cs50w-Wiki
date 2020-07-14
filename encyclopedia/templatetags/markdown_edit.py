@@ -31,7 +31,7 @@ class markdown(object):
         # Regex pattern 
         self.patterns = {
             "heading" :"#+\s", #heading
-            "ul":r"^\s*(\-\s|\*\s)([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
+            "ul":r"^\s*(\-|\*|\+\s)([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
             "ol":r"^\s*(\d+)(\.|\))\s*(.+?)(?<=$)",  # ordered list
             "hr":r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+", #HR
             "bold":r"(\*\*|__)(?=\S)(.+?[*_]*)(?<=\S)\1", #bold
@@ -41,6 +41,9 @@ class markdown(object):
             "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+(?<=$)",#Single line fenced code block
             "multi_line_fenced_code": r"\s*(`{3})",#Muliple line fenced code block
             "a_links":r"(\[(.*?)\])(\((.*?)\))", #Links
+            "image_links":r"(!\[(.*?)\])(\((.*?)\))", #images
+            "inline_code":r"\`([\w*\W*\d*\D*\s*\S*]+?)\`", #inline-code
+
         }
         # HTML tags 
         self.substitute_patterns ={
@@ -58,6 +61,8 @@ class markdown(object):
             "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
             "single_line_fenced_code":r"<pre><code>\2</code></pre>",# Single line fenced code
             "a_links":r"<a href =\4>\2</a>", #links
+            "img":r"<img src=\4 alt =\2>\2",
+            "inline":r"<code>\1</code>",
  
             
 
@@ -253,21 +258,30 @@ class markdown(object):
     def single_line_code(self,code,line):
         line = code.sub(self.substitute_patterns["single_line_fenced_code"],line)
         return line
-    
+    #image links
+    def image_links(self,img, line):
+        line = img.sub(self.substitute_patterns["img"],line)
+        return line
     #links
     def links(self,link, line):
         line = link.sub(self.substitute_patterns["a_links"],line)
         return line
     
+   
+    #inline code
+    def inline(self,inline_code,line):
+        line = inline_code.sub(self.substitute_patterns["inline"],line)
+        return line
+
     # markdown to html main function
-    def markdown_parser(self,markdown_string):
+    def markdown_parser(self):
         codeline =""
         lines =""
         single_line_fenced_code_active = False
         multi_line_fenced_code_active = False
-        
        
-        for line in markdown_string.splitlines():
+       
+        for line in self.markdown_string.splitlines():
             multi_line_code_space = 0
             single_line_fenced_code = re.compile(self.patterns["single_line_fenced_code"],re.MULTILINE)
 
@@ -342,7 +356,7 @@ class markdown(object):
                     if self.list_variable["ol"]["ol_tag_is_open"] == True:
                         #if ordered_list.search(line).group(1)- self.number_of_ol_list !=1:
 
-                        if len(line)-(len(line)-len(line.lstrip())) == self.previous_ol_linespace or heading_matches or hr_match:
+                        if heading_matches or hr_match:
                             line = self.close_list(line,"ol")
                             self.ol_current_line_space = 0
                             self.previous_ol_linespace =0
@@ -378,18 +392,26 @@ class markdown(object):
                 if strikethrough.search(line):
                     line = self.strikethrough(strikethrough,line)
 
-                
+                #image
+                img = re.compile(self.patterns["image_links"])
+                if img.search(line):
+         
+                    line = self.image_links(img,line)
+
                 #links
                 link =  re.compile(self.patterns["a_links"])
-
                 if link.search(line):
                     line = self.links(link,line)
                 
-
+               
+                #inline code
+                inline_code = re.compile(self.patterns["inline_code"])
+                if inline_code.search(line):
+                    line = self.inline(inline_code,line)
                 #Making sure that an empty line is not added
 
                 if line.strip() != "": #check if line is not empty
-                    pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>)")
+                    pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>|</*img>|</*a>)")
                     if pat.search(line):
                         self.results += '\n'+ line +'\n'
                     else:

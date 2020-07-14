@@ -9,6 +9,7 @@
 
 
     {% load md %}
+    {% load markdown_extras %}
     <h1 class="display-3">{{title}}</h1>
     
     <form action="{% url 'wiki:edit'  %}" method = "POST">
@@ -20,6 +21,6 @@
         {%endwith%}
 
     </form>
-    {{ content|markdown|safe }}
+    {{ content|markdown1|safe }}
 
 {% endblock %}
