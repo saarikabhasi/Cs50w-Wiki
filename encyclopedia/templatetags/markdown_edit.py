@@ -20,7 +20,7 @@ class markdown(object):
         self.previouslinespace = 0
         self.count =0
         self.markdown_string = value
-        self.code_area = False
+        
 
         # Regex pattern 
         self.patterns = {
@@ -34,11 +34,8 @@ class markdown(object):
             "italic" :r"(\*|_)(?=\S)(.+?[*_]*)(?<=\S)\1", #italic
             "bold_and_italic":r"\*\*\*(.+?)\*\*\*",
             "strikethrough" :r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1", #strikethrough
-            #"code":r"```((.+?\n)+)", #blocked code
-            #code single line:\s*(`{3})+(\s*\w*)(\s)*
-            #code single line:\s*(`{3})+(\s*\w*[(#\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)
-            "code":r"\s*(`{3})+(\s*\w*[(#\[|\^&+\-.',%\(\/)=!\:>\'\"\*\s]+?)",
-
+            "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+(?<=$)", #Single line fenced code block
+            "multi_line_fenced_code": r"\s*(`{3})",#Muli line fenced code block
             
         }
         # HTML tags 
@@ -50,7 +47,9 @@ class markdown(object):
             "italic":r"<em>\2</em>", #italic
             "strikethrough":r"<s>\2</s>", #strikethrough
             "bold_and_italic":r"<strong><em>\2</em></strong>", #Bold and italic
-            "code":r"<pre><code>\1</code></pre>",
+            "single_line_fenced_code":r"<pre><code>\2</code></pre>",
+            
+
         }
 
     # close all the opened tags of unordered list
@@ -159,9 +158,8 @@ class markdown(object):
         line = bold_and_italic.sub(self.substitute_patterns["bold_and_italic"],line )
         return line
     #code
-    def code(self,code,line):
-        line = code.sub(self.substitute_patterns["code"],line)
-        print("After change pre-code",line)
+    def single_line_code(self,code,line):
+        line = code.sub(self.substitute_patterns["single_line_fenced_code"],line)
         return line
     
 
@@ -169,32 +167,53 @@ class markdown(object):
     def markdown_parser(self,markdown_string):
         codeline =""
         lines =""
-        for line in markdown_string.splitlines():
-            print("LINE",line)
-            print("self.code_area Before test",self.code_area)
-            code = re.compile(self.patterns["code"],re.MULTILINE)
-            print("CODE",code)
-            if code.match(line):
-                print("CODE MATCH ",line)
+        single_line_fenced_code_active = False
+        multi_line_fenced_code_active = False
+        
 
-            if self.code_area == True:
-                if "```" in line:
-                    self.code_area = False
-                    codeline +="</code></pre>"
-                    print("CLOSING line:",codeline)
-                    #codeline=""
-                else:
-                    codeline+='\n'+line+'\n'
-                    print("line after change",codeline)
-                    continue
+        for line in markdown_string.splitlines():
+            multi_line_code_space = 0
+            single_line_fenced_code = re.compile(self.patterns["single_line_fenced_code"],re.MULTILINE)
+ 
+            #check if the line has single line code block
+            if single_line_fenced_code.search(line) and multi_line_fenced_code_active ==False:
+                single_line_fenced_code_active ==True
+                codeline = self.single_line_code(single_line_fenced_code,line)
             else:
-                if "```" in line:
-                    self.code_area = True
-                    codeline += "<pre><code>"
-                    continue
+                multiple_line_fenced_code = re.compile(self.patterns["multi_line_fenced_code"])
+      
+                if multi_line_fenced_code_active == True:
+                
+                    if multiple_line_fenced_code.search(line):
+                        if multi_line_code_space == len(line)-len(line.lstrip()):
+                            multi_line_fenced_code_active = False
+                            multi_line_code_space = 0
+                            
+                            codeline +="</code></pre>"
+                        else:
+               
+                            codeline+='\n'+line+'\n'
+
+                            continue    
+ 
+                    else:
+                        #keep appending code block line until you get another ```
+
+                        codeline+='\n'+line+'\n'
+
+                        continue
+                else:
+                    # check if the line is multi-line code block, 
+                    # if so, set multi_line_fenced_code_active variable as True
+                    #if "```" in line:
+                    if multiple_line_fenced_code.search(line):
+                        multi_line_fenced_code_active = True
+                        multi_line_code_space = len(line)-len(line.lstrip())
+                        codeline += "<pre><code>"
+                        continue
                     
-            print("self.code_area After TEst",self.code_area )
-            if self.code_area ==False and len(codeline) == 0:
+
+            if multi_line_fenced_code_active ==False and len(codeline) == 0 and single_line_fenced_code_active ==False:
                 #heading    
                 heading = re.compile(self.patterns["heading"]) 
                 heading_matches = heading.search(line.strip())
@@ -240,14 +259,7 @@ class markdown(object):
                 if strikethrough.search(line):
                     line = self.strikethrough(strikethrough,line)
 
-                # code
-            
-
-                # code = re.compile(self.patterns["code"])
-                # print("Before change code",line)
-                # if code.search(line):
-                #     line =self.code(code,line)
-                #     print("After change code",line)
+                #Making sure that an empty line is not added
             
                 if line.strip() != "": #check if line is not empty
                     if "<ul>" not in line and "</ul>" not in line:
@@ -271,7 +283,7 @@ class markdown(object):
                 self.results += '\n'+ codeline +'\n'
                 codeline =""
  
-            print("RESULTS",self.results)  
+
         return self.results
             
 
