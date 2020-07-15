@@ -68,7 +68,7 @@ class markdown(object):
 
         }
 
-    # close all the opened tags of list, The variable type can be UL or OL
+    # close all the opened tags of list.The variable type, can be UL or OL
     def close_list(self,line,type):
         
         if type in self.list_variable.keys():
@@ -92,13 +92,16 @@ class markdown(object):
     #ordered list
     def ol_list(self,line,ordered_list):
         
-        #First Ordered list
-
+      # When a line matches the ol pattern,  
+      # Calculate the preceeding space of the line.
+       
         current_ol_line_space = len(line)-len(line.lstrip())
-        #non nested list
+
+        # If the line space is same as previous ordered list line space . 
+        # Then the line is considered as same level the previous ol list.
 
         if current_ol_line_space-self.previous_ol_linespace == 0 : 
-
+            # First Ordered list
             if self.list_variable["ol"]["ol_tag_is_open"] == False:
                 
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
@@ -108,7 +111,12 @@ class markdown(object):
             else:
                 line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line)
 
-        #nested list    
+        # If the preceeding line space is between 3 and 6 (including) 
+        # Then the line could be part of nested ol.
+        # So this function checks if already a root ol tag and/ or sub ol is open, 
+        # IF both are True then it checks for number of opened sub list
+        # if there is atleast one sub list then a new ol is created, else it just appends to previous level ol list.
+
         elif 3<=current_ol_line_space-self.previous_ol_linespace <=6  : 
 
             if self.list_variable["ol"]["ol_tag_is_open"] == True: #not a first ordered list
@@ -128,6 +136,9 @@ class markdown(object):
                 self.list_variable["ol"]["ol_tag_is_open"] = True 
             self.previous_ol_linespace = current_ol_line_space
 
+        # if the line space between previous and current line is between -6 and -3, 
+        # It could of same level as the root or a new ol list
+        # before appending new ol, closes all the opened list and creates new ol tag
         elif -6<=current_ol_line_space-self.previous_ol_linespace<=-3:
             oltags =""
            
@@ -159,7 +170,7 @@ class markdown(object):
             self.previous_ol_linespace = current_ol_line_space
 
         else:
-           
+            # if the lines does not fall in any of the above categories , it is considered as a entirely new ol list
             line =self.close_list(line,"ol")
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
             self.list_variable["ol"]["ol_tag_is_open"] = True #set ul tag to open
@@ -172,9 +183,13 @@ class markdown(object):
 
     #unordered list
     def list(self,line,unordered_list):
+        
+        # When a line matches the ul pattern,  
+        # Calculate the preceeding space of the line.
         currentlinespace = len(line)-len(line.lstrip())
 
-        #non nested list
+        # If the line space is same as previous unordered list line space . 
+        # Then the line is considered as same level the previous ul list.
         if currentlinespace-self.previous_ul_linespace == 0: 
             
             if self.list_variable["ul"]["ultag_is_open"] == True:                       
@@ -186,7 +201,12 @@ class markdown(object):
                 self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
                 self.previous_ul_linespace = currentlinespace
 
-        #nested list    
+        #nested list  
+        # if the line space between previous and current line is between 2 and 5, 
+        # It could be a nested list
+        # So this function checks if already a root ul tag and/ or sub ul is open, 
+        # IF both are True then it checks for number of opened sub list
+        # if there is atleast one sub list then a new ul is created, else it just appends to previous level ul list.
         elif 2<=currentlinespace-self.previous_ul_linespace <=5: 
            
             if self.list_variable["ul"]["ultag_is_open"] == True: #not a first li in the list
@@ -206,8 +226,9 @@ class markdown(object):
                 self.list_variable["ul"]["ultag_is_open"] = True 
             self.previous_ul_linespace = currentlinespace
 
-        #nested new list
-        else: #currentlinespace < self.previous_ul_linespace:
+        # nested new list
+        # if the lines does not fall in any of the above categories , it is considered as a entirely new ul list
+        else: 
 
             #close all previous nested list
             line =self.close_list(line,"ul")
@@ -293,14 +314,17 @@ class markdown(object):
 
             #check if the line has single line code block
             if single_line_fenced_code.search(line) and multi_line_fenced_code_active ==False:
-                single_line_fenced_code_active ==True
+                single_line_fenced_code_active == True
                 codeline = self.single_line_code(single_line_fenced_code,line)
             else:
                 multiple_line_fenced_code = re.compile(self.patterns["multi_line_fenced_code"])
       
                 if multi_line_fenced_code_active == True:
-                
+
+                    #keep appending code block line until the line matches another multi_line_fenced_code pattern
                     if multiple_line_fenced_code.search(line):
+                    
+                        # Close the multi line code block only if the line's space of first pattern match is equal to current line's space
                         if multi_line_code_space == len(line)-len(line.lstrip()):
                             multi_line_fenced_code_active = False
                             multi_line_code_space = 0
@@ -313,8 +337,7 @@ class markdown(object):
                             continue    
  
                     else:
-                        #keep appending code block line until you get another ```
-
+                        #appends until pattern is match
                         codeline+='\n'+line+'\n'
 
                         continue
@@ -328,7 +351,7 @@ class markdown(object):
                         codeline += "<pre><code>"
                         continue
                     
-
+            # It checks for other pattern only if its not a code block
             if multi_line_fenced_code_active ==False and len(codeline) == 0 and single_line_fenced_code_active ==False:
                 #heading    
                 heading = re.compile(self.patterns["heading"]) 
@@ -350,6 +373,7 @@ class markdown(object):
                 hr_match = hr.search(line)
                 if hr_match: 
                     line = self.hr(hr,line)
+
                 #Bold tag
                 bold = re.compile(self.patterns["bold"])
                 if bold.search(line):
@@ -417,11 +441,11 @@ class markdown(object):
                 web =  re.compile(self.patterns["web_links"])
                 if web.search(line):
                     line = self.web_links(web,line)
-                    
+
                 #Making sure that an empty line is not added
 
                 if line.strip() != "": #check if line is not empty
-                    pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>|</*img>|</*a>)")
+                    pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>|</*img>|</*a>|<hr>)")
                     if pat.search(line):
                         self.results += '\n'+ line +'\n'
                     else:
