@@ -10,15 +10,17 @@
 
     {% load md %}
 
-    <h1 class="display-3">{{title}}</h1>
+
     
     <form action="{% url 'wiki:edit'  %}" method = "POST">
         {% csrf_token %}
         
         {% with pagename=title %}    
         
-        <button type="submit"  name = "edit" value="{{pagename}}">edit</button>
+        <button type="submit"  name = "edit" value="{{pagename}}" id ="edit">edit</button>
+        
         {%endwith%}
+        <h1 class="display-3" >{{title}}</h1>
 
     </form>
     {{ content|markdown|safe }}

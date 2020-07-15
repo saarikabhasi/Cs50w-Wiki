@@ -63,7 +63,7 @@ class markdown(object):
             "a_links":r"<a href =\4>\2</a>", #links
             "img":r"<img src=\4 alt =\2>\2", #Images
             "inline":r"<code>\1</code>", #inline code
-            "web":r"<a href =\">\1</a>", #web link
+            "web":r"<a href =\1>\1</a>", #web link
             
 
         }
@@ -430,17 +430,19 @@ class markdown(object):
                 link =  re.compile(self.patterns["a_links"])
                 if link.search(line):
                     line = self.links(link,line)
-                
+                else:
+                    #web links
+                    web =  re.compile(self.patterns["web_links"])
+                    if web.search(line):
+                        line = self.web_links(web,line)
                
                 #inline code
                 inline_code = re.compile(self.patterns["inline_code"])
                 if inline_code.search(line):
                     line = self.inline(inline_code,line)
 
-                #web links
-                web =  re.compile(self.patterns["web_links"])
-                if web.search(line):
-                    line = self.web_links(web,line)
+                
+                
 
                 #Making sure that an empty line is not added
 

@@ -30,7 +30,8 @@ def get_page(request,title):
     return render(request,"encyclopedia/titlepage.html",{
         'title': title, 
         'content': body,
-        "form":form
+        "form":form,
+
     })
 
 
@@ -160,4 +161,4 @@ def save_page(request):
 
 #show random page
 def random_page(request):
-    return get_page(request, choice( util.list_entries()))
+    return get_page(request,choice( util.list_entries()))

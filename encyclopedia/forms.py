@@ -17,7 +17,7 @@ class NewPageForm(forms.Form):
 
     body = forms.CharField(label="Content",required= False,
     widget= forms.Textarea
-    (attrs={'placeholder':'Enter content', "rows":20, "cols":80,'class':'col-sm-12','style':'top:2rem'}))
+    (attrs={'placeholder':'Enter content','class':'col-sm-12','style':'top:2rem'}))
 
 #edit page
 class EditPageForm(forms.Form):

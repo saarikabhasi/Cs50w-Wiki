@@ -1,8 +1,9 @@
 body {
     margin: 0;
-    background-color: white;
+    /* background-color: rgb(244, 237, 209); */
     font-family: Roboto;
     height: 100%;
+    background-color: rgb(233, 233, 233); 
 }
 pre{
     padding: 16px;
@@ -49,38 +50,64 @@ textarea {
     width: 100%;
     font-size: 15px;
     line-height: 15px;
+    
+}
+#search{
+    position: relative;
+    background-color: rgb(109, 177, 206);
+    color: #fffefe;
+    border: transparent;
+    font-size: 1.7rem;
+    margin-top: 4rem;
+    height: 3rem;
+    margin-left: 20%;
+    border-radius: 6px;
+    
+
+}
+#search:hover{
+    background-color: rgb(125, 211, 125);
 }
 .nav-active{
     
-    border-bottom: 5px solid rgb(38, 162, 149);
-    font-size: 1.4rem;
-    padding:0px;
+    border-bottom: 5px solid rgb(38, 77, 162);
+    font-size: 2rem;
+    padding-bottom:20px;
 
     color: rgb(79, 78, 78);
   
     
 }
 .navbar{
-    background-color: rgb(255, 250, 250);
-    border-bottom: 1px solid rgb(38, 162, 149);
+    /* background-color: rgb(186, 185, 185); */
+    border-bottom: 1px solid rgb(38, 77, 162);
+    padding: 20px;
+    background-color: white;
+  
 
 }
 .nav-item a{
     color: rgb(79, 78, 78);
-    font-size: 1.4rem;
+    font-size: 2rem;
     padding:0px;
+    margin-bottom: 15px;
     
     
     
+}
+.nav-item:hover{
+    border-bottom: 5px solid rgb(38, 77, 162);
+    margin-bottom: 0px;;
 }
 .nav-item{
     /* margin-right: 20px;
     margin-left: 20px; */
+    margin-left: 5rem;
 }
 .navbar-brand h1 {
     margin-top: 0px;
     font-weight: 900;
-    font-size: 4rem;
+    font-size: 6rem;
     color: rgb(38, 162, 149);
     text-align: left;
     font-family: monospace;
@@ -88,9 +115,10 @@ textarea {
 
 .sidebar {
     background-color: #ffffff;
-    height: 100vh;
+    /* height: 100vh; */
     padding: 20px;
     margin-top: -16px;
+    font-size: 1.3rem;
     
    
 }
@@ -98,29 +126,13 @@ textarea {
     border: 1px solid cyan;
 }
 
+#index h1{
+    color: rgb(38, 162, 149);;
+    margin-left: 0%;
+    margin-bottom: 2rem;
+    font-size: 3rem;
+    text-transform: uppercase;
 
-#createpage{
-    text-align: center;
-    left: 0%;
-    margin-top: 4rem;
-    position: relative;
-    background-color: rgb(0, 179, 255);
-    color: #f0f0f0;
-    border: transparent;
-    font-size: 1.4rem;
-
-}
-
-[type =text]{
-    text-align: center;
-    
-    margin-top: 20px;;
-    position: relative;
-
-}
-
-#notfound{
-    color:red;
 }
 #show_list{
     position: relative;
@@ -134,11 +146,112 @@ textarea {
     margin-bottom: 10px;
     position: relative;
     white-space: nowrap;
+    color:rgb(218, 141, 128);
+    font-size: 1.5rem;
     
 
 }
-#show_list li::marker {
-    color: red;
+
+#show_list a{
+    white-space: pre-line;
+    margin-bottom: 10px;
+    position: relative;
+    white-space: nowrap;
+    color:rgb(38, 77, 162);
+    font-size: 1.5rem;
+    
+
+}
+/* #show_list li::marker {
+    color: red; 
     font-size: 1.5em;
   }
+   */
+
+#search_result {
+    position: relative;
+    white-space:wrap;
+    columns: 100px 2;
+    column-gap: 40px;
+    column-rule-width: 1px; 
+}
+#search_result li{
+    white-space: pre-line;
+    margin-bottom: 10px;
+    position: relative;
+
+    white-space: nowrap;
+    color:rgb(218, 141, 128);
+    font-size: 1.5rem;
+}
+#search_result a{
   
+    margin-bottom: 10px;
+    position: relative;
+    white-space: nowrap;
+    color:rgb(38, 77, 162);
+    font-size: 1.5rem;
+    
+
+}
+#createpage{
+    text-align: center;
+    left: 40%;
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    position: relative;
+    background-color: rgb(43, 107, 135);
+    color: #f0f0f0;
+    border: transparent;
+    font-size: 2rem;
+    border-radius: 6px ;
+
+
+
+}
+#createpage:hover{
+    background-color: rgb(125, 211, 125);
+}
+#edit{
+
+    margin-left:80%;
+    margin-top: 1rem;
+    margin-bottom: 0rem;
+    position: relative;
+    background-color: rgb(109, 177, 206);
+    color: #ffffff;
+    border: transparent;
+    font-size: 2rem;
+    border-radius: 6px ;
+}
+#edit:hover{
+    background-color:rgb(125, 211, 125);
+}
+.create{
+    /* border: 1px solid black; */
+}
+label{
+    font-size: 1.7rem;
+    display: block;
+}
+[type =text]{
+    text-align: center;
+    border-radius: 6px ;
+    margin-top: 20px;
+    margin-left:15px;
+    margin-right: 15px;
+    position: relative;
+    width:70% ;
+    font-size: 1.7rem;
+
+}
+textarea{
+    font-size: 1.7rem;
+    width:60%;
+    border-radius: 6px ;
+    margin-top: 20px;
+    margin-left:15px;
+    margin-right: 15px;
+    
+}
+

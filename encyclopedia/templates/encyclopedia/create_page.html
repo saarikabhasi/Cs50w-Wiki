@@ -5,16 +5,17 @@
 {% endblock %}
 {% block nav-create %}<li class="nav-active">Create New Page</li>{% endblock %}
 {% block body %}
-    <h1>create page</h1>
-    <p>{{error}}</p>
-    <form action="{% url 'wiki:create'  %}" method="POST">
-        {% csrf_token %}          
-        
-        {{create_form}}
-        
-        <input id = "createpage" type="submit">
-        
-    </form> 
-
+    <h1 >Create page</h1>
+    <h3 class="text-danger text-center">{{error}}</h3>
+    <div >
+        <form action="{% url 'wiki:create'  %}" method="POST"  >
+            {% csrf_token %}          
+            
+            {{create_form}}
+            
+            <input id = "createpage" type="submit">
+            
+        </form> 
+</div>
 
 {% endblock %}
