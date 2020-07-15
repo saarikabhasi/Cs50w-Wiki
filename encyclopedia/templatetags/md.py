@@ -8,7 +8,7 @@ register = template.Library()
 
 @register.filter()
 @stringfilter
-def markdown1(value):
+def markdown(value):
 
     md_object=md.markdown(value)
     return md_object.markdown_parser()

@@ -9,21 +9,22 @@ class markdown(object):
   
     def __init__(self,value):
         self.results='' #Stores final result
-        self.previouslinespace = 0
-        self.markdown_string = value
-        self.ol_current_line_space = 0
-        self.previous_ol_linespace  = 0
-
+        self.previous_ul_linespace = 0 # variable that stores previous line's space of un ordered list
+        self.markdown_string = value # Markdown string to be converted to HTML
+        self.ol_current_line_space = 0 # variable that stores current line's space of ordered list
+        self.previous_ol_linespace  = 0 # variable that stores previous line's space of ordered list
+        
+        # variables used by lists
         self.list_variable = {
             "ul":{
-                "ultag_is_open":False,
-                "sub_ultag_is_open":False,
-                "number_of_list": 0 
+                "ultag_is_open":False, # If True, a Unordered list is open. 
+                "sub_ultag_is_open":False, # If True, Nested Unordered list is open.
+                "number_of_list": 0 # Stores number of Sub Unordered List
                 },
             "ol":{
-                "ol_tag_is_open":False,
-                "sub_oltag_is_open":False,
-                "number_of_list":0
+                "ol_tag_is_open":False, # If True, a ordered list is open. 
+                "sub_oltag_is_open":False, # If True, Nested ordered list is open.
+                "number_of_list":0 # Stores number of Sub ordered List
             }
         }
     
@@ -43,6 +44,7 @@ class markdown(object):
             "a_links":r"(\[(.*?)\])(\((.*?)\))", #Links
             "image_links":r"(!\[(.*?)\])(\((.*?)\))", #images
             "inline_code":r"\`([\w*\W*\d*\D*\s*\S*]+?)\`", #inline-code
+            "web_links":r"(((http(s)*:\/\/){1}|(www\.{1}))(.*))", #web link
 
         }
         # HTML tags 
@@ -50,10 +52,8 @@ class markdown(object):
             
             "ul_li_tag":r"\n<ul>\n<li>\2</li>\n", # new un ordered list tag
             "li_tag_of_ul":r"\n<li>\2</li>\n", #li tag of un-ordered list
-
             "ol_li_tag":r"\n<ol start = \1>\n<li>\3</li>\n",#new ordered list
             "li_tag_of_ol":r"\n<li>\3</li>\n",  #li tag of ordered list
-
             "hr_tag" : r"\n<hr>\n", #line break tag 
             "bold":r"<strong>\2</strong>", #bold
             "italic":r"<em>\2</em>", #italic
@@ -61,14 +61,14 @@ class markdown(object):
             "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
             "single_line_fenced_code":r"<pre><code>\2</code></pre>",# Single line fenced code
             "a_links":r"<a href =\4>\2</a>", #links
-            "img":r"<img src=\4 alt =\2>\2",
-            "inline":r"<code>\1</code>",
- 
+            "img":r"<img src=\4 alt =\2>\2", #Images
+            "inline":r"<code>\1</code>", #inline code
+            "web":r"<a href =\">\1</a>", #web link
             
 
         }
 
-    # close all the opened tags of list
+    # close all the opened tags of list, The variable type can be UL or OL
     def close_list(self,line,type):
         
         if type in self.list_variable.keys():
@@ -83,7 +83,7 @@ class markdown(object):
                     closingTags = "</" + type + ">"+'\n'
 
 
-                line =closingTags + line
+                line = closingTags + line
                 self.list_variable[type]["number_of_list"] =0  
         return line   
         
@@ -93,12 +93,12 @@ class markdown(object):
     def ol_list(self,line,ordered_list):
         
         #First Ordered list
-        # 3 till 6
+
         current_ol_line_space = len(line)-len(line.lstrip())
         #non nested list
 
         if current_ol_line_space-self.previous_ol_linespace == 0 : 
-      
+
             if self.list_variable["ol"]["ol_tag_is_open"] == False:
                 
                 line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
@@ -130,7 +130,7 @@ class markdown(object):
 
         elif -6<=current_ol_line_space-self.previous_ol_linespace<=-3:
             oltags =""
-
+           
             if self.list_variable["ol"]["number_of_list"] >=1:
 
                 for _ in range(int(self.list_variable["ol"]["number_of_list"])-1):
@@ -141,7 +141,7 @@ class markdown(object):
             if self.list_variable["ol"]["ol_tag_is_open"] == True: #not a first ordered list
 
                 if self.list_variable["ol"]["sub_oltag_is_open"] :
-                    #self.list_variable["ol"]["number_of_list"] +=1
+
                     line = ordered_list.sub(self.substitute_patterns["li_tag_of_ol"],line) 
 
                 else:
@@ -160,7 +160,6 @@ class markdown(object):
 
         else:
            
-       
             line =self.close_list(line,"ol")
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
             self.list_variable["ol"]["ol_tag_is_open"] = True #set ul tag to open
@@ -176,7 +175,7 @@ class markdown(object):
         currentlinespace = len(line)-len(line.lstrip())
 
         #non nested list
-        if currentlinespace-self.previouslinespace == 0: 
+        if currentlinespace-self.previous_ul_linespace == 0: 
             
             if self.list_variable["ul"]["ultag_is_open"] == True:                       
                 line = unordered_list.sub(self.substitute_patterns["li_tag_of_ul"],line)
@@ -185,10 +184,10 @@ class markdown(object):
                 #first li in the list
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
                 self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
-                self.previouslinespace = currentlinespace
+                self.previous_ul_linespace = currentlinespace
 
         #nested list    
-        elif 2<=currentlinespace-self.previouslinespace <=5: 
+        elif 2<=currentlinespace-self.previous_ul_linespace <=5: 
            
             if self.list_variable["ul"]["ultag_is_open"] == True: #not a first li in the list
 
@@ -205,17 +204,17 @@ class markdown(object):
 
                 line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
                 self.list_variable["ul"]["ultag_is_open"] = True 
-            self.previouslinespace = currentlinespace
+            self.previous_ul_linespace = currentlinespace
 
         #nested new list
-        else: #currentlinespace < self.previouslinespace:
+        else: #currentlinespace < self.previous_ul_linespace:
 
             #close all previous nested list
             line =self.close_list(line,"ul")
 
             line = unordered_list.sub(self.substitute_patterns["ul_li_tag"],line)
             self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
-            self.previouslinespace = currentlinespace
+            self.previous_ul_linespace = currentlinespace
 
         return line   
                          
@@ -258,10 +257,12 @@ class markdown(object):
     def single_line_code(self,code,line):
         line = code.sub(self.substitute_patterns["single_line_fenced_code"],line)
         return line
+
     #image links
     def image_links(self,img, line):
         line = img.sub(self.substitute_patterns["img"],line)
         return line
+
     #links
     def links(self,link, line):
         line = link.sub(self.substitute_patterns["a_links"],line)
@@ -271,6 +272,11 @@ class markdown(object):
     #inline code
     def inline(self,inline_code,line):
         line = inline_code.sub(self.substitute_patterns["inline"],line)
+        return line
+
+    #web links
+    def web_links(self,web, line):
+        line = web.sub(self.substitute_patterns["web"],line)
         return line
 
     # markdown to html main function
@@ -344,35 +350,6 @@ class markdown(object):
                 hr_match = hr.search(line)
                 if hr_match: 
                     line = self.hr(hr,line)
-                
-
-                #ordered list
-                ordered_list = re.compile(self.patterns["ol"])
-                if ordered_list.search(line):
-                    
-                    line = self.ol_list(line,ordered_list)
-
-                else:
-                    if self.list_variable["ol"]["ol_tag_is_open"] == True:
-                        #if ordered_list.search(line).group(1)- self.number_of_ol_list !=1:
-
-                        if heading_matches or hr_match:
-                            line = self.close_list(line,"ol")
-                            self.ol_current_line_space = 0
-                            self.previous_ol_linespace =0
-
-
-
-                #unordered list
-                unordered_list = re.compile(self.patterns["ul"],re.MULTILINE)
-
-                if unordered_list.search(line):
-                    line = self.list(line,unordered_list)
-                else:
-                    line = self.close_list(line,"ul") #close all opened list tags
-                    self.previouslinespace = 0
-                
-                
                 #Bold tag
                 bold = re.compile(self.patterns["bold"])
                 if bold.search(line):
@@ -392,6 +369,33 @@ class markdown(object):
                 if strikethrough.search(line):
                     line = self.strikethrough(strikethrough,line)
 
+                #ordered list
+                ordered_list = re.compile(self.patterns["ol"])
+                if ordered_list.search(line):
+                    
+                    line = self.ol_list(line,ordered_list)
+
+                else:
+                    if self.list_variable["ol"]["ol_tag_is_open"] == True:
+                        if heading_matches or hr_match:
+                            line = self.close_list(line,"ol")
+                            self.ol_current_line_space = 0
+                            self.previous_ol_linespace =0
+
+
+
+                #unordered list
+                unordered_list = re.compile(self.patterns["ul"],re.MULTILINE)
+
+                if unordered_list.search(line):
+                    line = self.list(line,unordered_list)
+                else:
+                    line = self.close_list(line,"ul") #close all opened list tags
+                    self.previous_ul_linespace = 0
+                
+                
+                
+
                 #image
                 img = re.compile(self.patterns["image_links"])
                 if img.search(line):
@@ -408,6 +412,12 @@ class markdown(object):
                 inline_code = re.compile(self.patterns["inline_code"])
                 if inline_code.search(line):
                     line = self.inline(inline_code,line)
+
+                #web links
+                web =  re.compile(self.patterns["web_links"])
+                if web.search(line):
+                    line = self.web_links(web,line)
+                    
                 #Making sure that an empty line is not added
 
                 if line.strip() != "": #check if line is not empty
@@ -417,13 +427,13 @@ class markdown(object):
                     else:
                         self.results+='\n'+"<p>"+line +"</p>"+'\n'
                    
-
+     
             else:
-                #Fenced Code block
+                #fenced code block
                 self.results += '\n'+ codeline +'\n'
                 codeline =""
 
-
+        
         return self.results
             
 
