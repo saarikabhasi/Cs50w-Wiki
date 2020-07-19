@@ -23,6 +23,6 @@
         <h1 class="display-3" >{{title}}</h1>
 
     </form>
-    {{ content|markdown|safe }}
+    {{ content|markdown|markdown_extras|safe }}
 
 {% endblock %}

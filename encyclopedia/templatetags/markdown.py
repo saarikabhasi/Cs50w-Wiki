@@ -70,7 +70,10 @@ class markdown(object):
 
     # close all the opened tags of list.The variable type, can be UL or OL
     def close_list(self,line,type):
-        
+        #print("_______________")
+        print("CLOSE List is being called")
+        #print("Type:",type)
+        #print("for line",line)
         if type in self.list_variable.keys():
             for var in self.list_variable[type]:
 
@@ -94,9 +97,12 @@ class markdown(object):
         
       # When a line matches the ol pattern,  
       # Calculate the preceeding space of the line.
-       
+        #print("_______________")
+        print("OL LIST is being called")
         current_ol_line_space = len(line)-len(line.lstrip())
-
+        #print("LINE",line)
+        #print("SPACE:current_ol_line_space",current_ol_line_space,"self.previous_ol_linespace")
+        #print("MINUS",current_ol_line_space-self.previous_ol_linespace )
         # If the line space is same as previous ordered list line space . 
         # Then the line is considered as same level the previous ol list.
 
@@ -171,9 +177,10 @@ class markdown(object):
 
         else:
             # if the lines does not fall in any of the above categories , it is considered as a entirely new ol list
-            line =self.close_list(line,"ol")
+            if self.list_variable["ol"]["ol_tag_is_open"] == True: 
+                line =self.close_list(line,"ol")
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-            self.list_variable["ol"]["ol_tag_is_open"] = True #set ul tag to open
+            self.list_variable["ol"]["ol_tag_is_open"] = True #set ol tag to open
             self.previous_ol_linespace = current_ol_line_space
 
         return line   
@@ -308,56 +315,70 @@ class markdown(object):
         multi_line_fenced_code_active = False
         line_tobe_checked_for_heading = ""
         heading_check =False
-        
+        multi_line_code_space = 0
         
        
         for line in self.markdown_string.splitlines():
-            multi_line_code_space = 0
+            print("_______________")
+            print("Line:",line)
+            
             
             single_line_fenced_code = re.compile(self.patterns["single_line_fenced_code"],re.MULTILINE)
 
             #check if the line has single line code block
             if single_line_fenced_code.search(line) and multi_line_fenced_code_active ==False:
+                print("Single code line",line)
                 single_line_fenced_code_active == True
                 codeline = self.single_line_code(single_line_fenced_code,line)
             else:
+                print("Multiple code line",line)
                 multiple_line_fenced_code = re.compile(self.patterns["multi_line_fenced_code"])
       
                 if multi_line_fenced_code_active == True:
 
                     #keep appending code block line until the line matches another multi_line_fenced_code pattern
                     if multiple_line_fenced_code.search(line):
-                    
+                        print("SPACE multi code line")
+                        print("multi_line_code_space",multi_line_code_space)
+                        print("diff",len(line)-len(line.lstrip()))
                         # Close the multi line code block only if the line's space of first pattern match is equal to current line's space
-                        if multi_line_code_space == len(line)-len(line.lstrip()):
+                        if 0<=len(line)-len(line.lstrip())<=3:
                             multi_line_fenced_code_active = False
                             multi_line_code_space = 0
-                            
+                            print("code line close")
                             codeline +="</code></pre>"
                         else:
                
                             codeline+='\n'+line+'\n'
+                            print("MULTILINE Code append 2",codeline)
 
                             continue    
  
                     else:
                         #appends until pattern is match
                         codeline+='\n'+line+'\n'
-
+                        print("MULTILINE Code append 1",codeline)
                         continue
                 else:
                     # check if the line is multi-line code block, 
                     # if so, set multi_line_fenced_code_active variable as True
                     #if "```" in line:
                     if multiple_line_fenced_code.search(line):
+                        print("MULTILINE Code start")
                         multi_line_fenced_code_active = True
                         multi_line_code_space = len(line)-len(line.lstrip())
-                        codeline += "<pre><code>"
+                        print("multi_line_code_space",multi_line_code_space)
+                        if 0<=multi_line_code_space <=3:
+
+                            codeline += "<pre><code>"
+                        else:
+                            codeline += "<pre><code>"+line
+                        print("Code line after start",codeline)
                         continue
                     
             # It checks for other pattern only if its not a code block
             if multi_line_fenced_code_active ==False and len(codeline) == 0 and single_line_fenced_code_active ==False:
-
+                print("LINE:", line)
                 #heading    
                 heading = re.compile(self.patterns["heading"]) 
                 heading_matches = heading.search(line.strip())
@@ -406,10 +427,10 @@ class markdown(object):
 
                 else:
                     if self.list_variable["ol"]["ol_tag_is_open"] == True:
-                        if heading_matches or hr_match:
-                            line = self.close_list(line,"ol")
-                            self.ol_current_line_space = 0
-                            self.previous_ol_linespace =0
+                        #if heading_matches or hr_match:
+                        line = self.close_list(line,"ol")
+                        self.ol_current_line_space = 0
+                        self.previous_ol_linespace =0
 
 
 
@@ -418,9 +439,13 @@ class markdown(object):
 
                 if unordered_list.search(line):
                     line = self.list(line,unordered_list)
+                    
                 else:
-                    line = self.close_list(line,"ul") #close all opened list tags
-                    self.previous_ul_linespace = 0
+
+                    if self.list_variable["ul"]["ultag_is_open"] == True:
+                        
+                        line = self.close_list(line,"ul") #close all opened list tags
+                        self.previous_ul_linespace = 0
         
 
                 #image
@@ -457,11 +482,13 @@ class markdown(object):
                         self.results += '\n'+ line +'\n'
                     else:
                         self.results+='\n'+"<p>"+line +"</p>"+'\n'
+                
             else:
                 #fenced code block
                 self.results += '\n'+ codeline +'\n'
                 codeline =""
-
+                print("RESULTS:",self.results)
+                
         
         return self.results
             
