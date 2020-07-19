@@ -171,9 +171,11 @@ class markdown(object):
 
         else:
             # if the lines does not fall in any of the above categories , it is considered as a entirely new ol list
-            line =self.close_list(line,"ol")
+            if self.list_variable["ol"]["ol_tag_is_open"] == True: 
+                line =self.close_list(line,"ol")
+
             line = ordered_list.sub(self.substitute_patterns["ol_li_tag"],line)
-            self.list_variable["ol"]["ol_tag_is_open"] = True #set ul tag to open
+            self.list_variable["ol"]["ol_tag_is_open"] = True #set ol tag to open
             self.previous_ol_linespace = current_ol_line_space
 
         return line   
@@ -406,7 +408,7 @@ class markdown(object):
 
                 else:
                     if self.list_variable["ol"]["ol_tag_is_open"] == True:
-                        if heading_matches or hr_match:
+                        #if heading_matches or hr_match:
                             line = self.close_list(line,"ol")
                             self.ol_current_line_space = 0
                             self.previous_ol_linespace =0
@@ -419,8 +421,9 @@ class markdown(object):
                 if unordered_list.search(line):
                     line = self.list(line,unordered_list)
                 else:
-                    line = self.close_list(line,"ul") #close all opened list tags
-                    self.previous_ul_linespace = 0
+                    if self.list_variable["ul"]["ultag_is_open"] == True:
+                        line = self.close_list(line,"ul") #close all opened list tags
+                        self.previous_ul_linespace = 0
         
 
                 #image
