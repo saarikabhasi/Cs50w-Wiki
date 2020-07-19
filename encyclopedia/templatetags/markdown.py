@@ -41,10 +41,10 @@ class markdown(object):
             "strikethrough" :r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1", #strikethrough
             "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+(?<=$)",#Single line fenced code block
             "multi_line_fenced_code": r"\s*(`{3})",#Muliple line fenced code block
-            "a_links":r"(\[(.*?)\])(\((.*?)\))", #Links
+            "link_text":r"(\[(.*?)\])(\((.*?)\))", #Links
             "image_links":r"(!\[(.*?)\])(\((.*?)\))", #images
             "inline_code":r"\`([\w*\W*\d*\D*\s*\S*]+?)\`", #inline-code
-            "web_links":r"(((http(s)*:\/\/){1}|(www\.{1}))(.*))", #web link
+            "automatic_hyperlinks":r"(((http(s)*:\/\/){1}|(www\.{1}))(.*))", #web link
 
         }
         # HTML tags 
@@ -60,10 +60,10 @@ class markdown(object):
             "strikethrough":r"<s>\2</s>", #strikethrough
             "bold_and_italic":r"<strong><em>\1</em></strong>", #Bold and italic
             "single_line_fenced_code":r"<pre><code>\2</code></pre>",# Single line fenced code
-            "a_links":r"<a href =\4>\2</a>", #links
-            "img":r"<img src=\4 alt =\2>\2", #Images
+            "link_text":r"<a href ='\4'>\2</a>", #links
+            "image_links":r"<img src='\4' alt ='\2'>", #Images
             "inline":r"<code>\1</code>", #inline code
-            "web":r"<a href =\1>\1</a>", #web link
+            "automatic_hyperlinks":r"<a href ='\1'>\1</a>", #web link
             
 
         }
@@ -281,12 +281,12 @@ class markdown(object):
 
     #image links
     def image_links(self,img, line):
-        line = img.sub(self.substitute_patterns["img"],line)
+        line = img.sub(self.substitute_patterns["image_links"],line)
         return line
 
     #links
-    def links(self,link, line):
-        line = link.sub(self.substitute_patterns["a_links"],line)
+    def link_text(self,link, line):
+        line = link.sub(self.substitute_patterns["link_text"],line)
         return line
     
    
@@ -296,8 +296,8 @@ class markdown(object):
         return line
 
     #web links
-    def web_links(self,web, line):
-        line = web.sub(self.substitute_patterns["web"],line)
+    def automatic_hyperlinks(self,automatic_hyperlinks, line):
+        line = automatic_hyperlinks.sub(self.substitute_patterns["automatic_hyperlinks"],line)
         return line
 
     # markdown to html main function
@@ -306,10 +306,14 @@ class markdown(object):
         lines =""
         single_line_fenced_code_active = False
         multi_line_fenced_code_active = False
-       
+        line_tobe_checked_for_heading = ""
+        heading_check =False
+        
+        
        
         for line in self.markdown_string.splitlines():
             multi_line_code_space = 0
+            
             single_line_fenced_code = re.compile(self.patterns["single_line_fenced_code"],re.MULTILINE)
 
             #check if the line has single line code block
@@ -353,20 +357,21 @@ class markdown(object):
                     
             # It checks for other pattern only if its not a code block
             if multi_line_fenced_code_active ==False and len(codeline) == 0 and single_line_fenced_code_active ==False:
+
                 #heading    
                 heading = re.compile(self.patterns["heading"]) 
                 heading_matches = heading.search(line.strip())
 
                 if heading_matches != None:
                     
-                    line=self.heading(heading_matches,line)
+                    line = self.heading(heading_matches,line)
                 
                 #bold and italic
                 bold_and_italic = re.compile(self.patterns["bold_and_italic"])
                 if bold_and_italic.search(line):
                     line = self.bold_and_italic(bold_and_italic,line)
-                  
-                    
+                        
+                            
 
                 #HR tag
                 hr =  re.compile(self.patterns["hr"])
@@ -383,7 +388,7 @@ class markdown(object):
                 italic = re.compile(self.patterns["italic"])
         
                 if italic.search(line):
-         
+        
                     line = self.italic(italic,line)
                 
 
@@ -416,44 +421,42 @@ class markdown(object):
                 else:
                     line = self.close_list(line,"ul") #close all opened list tags
                     self.previous_ul_linespace = 0
-                
-                
-                
+        
 
                 #image
+                #![Minion](https://octodex.github.com/images/minion.png)
                 img = re.compile(self.patterns["image_links"])
+
                 if img.search(line):
-         
                     line = self.image_links(img,line)
 
-                #links
-                link =  re.compile(self.patterns["a_links"])
-                if link.search(line):
-                    line = self.links(link,line)
-                else:
-                    #web links
-                    web =  re.compile(self.patterns["web_links"])
-                    if web.search(line):
-                        line = self.web_links(web,line)
-               
+                else:    
+                    #links - example:[link text](https://www.google.com/)
+                    link_text =  re.compile(self.patterns["link_text"])
+
+                    if link_text.search(line):
+                        line = self.link_text(link_text,line)
+
+                    else:
+    
+                        # Autoconverted link example:https://www.google.com/
+                        automatic_hyperlinks =  re.compile(self.patterns["automatic_hyperlinks"])
+
+                        if automatic_hyperlinks.search(line):
+                            line = self.automatic_hyperlinks(automatic_hyperlinks,line)
+
                 #inline code
                 inline_code = re.compile(self.patterns["inline_code"])
                 if inline_code.search(line):
-                    line = self.inline(inline_code,line)
-
-                
-                
+                    line = self.inline(inline_code,line)  
 
                 #Making sure that an empty line is not added
-
                 if line.strip() != "": #check if line is not empty
                     pat =re.compile(r"(</*ul>|</*li>|</*ol>|</*h[1-6]{1}|</*code>|</*pre>|</*img>|</*a>|<hr>)")
                     if pat.search(line):
                         self.results += '\n'+ line +'\n'
                     else:
                         self.results+='\n'+"<p>"+line +"</p>"+'\n'
-                   
-     
             else:
                 #fenced code block
                 self.results += '\n'+ codeline +'\n'
