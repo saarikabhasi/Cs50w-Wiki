@@ -6,7 +6,7 @@
 {% block nav-create %}<li class="nav-active">Create New Page</li>{% endblock %}
 {% block body %}
     <h1 >Create page</h1>
-    <h3 class="text-danger text-center">{{error}}</h3>
+    <h3 class="text-danger text-center text-capitalize ">{{error}}</h3>
     <div >
         <form action="{% url 'wiki:create'  %}" method="POST"  >
             {% csrf_token %}          

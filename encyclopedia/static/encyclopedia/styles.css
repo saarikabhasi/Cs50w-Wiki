@@ -40,10 +40,11 @@ h1 {
 textarea {
     height: 90vh;
     width: 80%;
+
 }
 
 .main {
-    padding: 10px;
+    padding: 20px;
 }
 
 .search {
@@ -72,37 +73,37 @@ textarea {
     
     border-bottom: 5px solid rgb(38, 77, 162);
     font-size: 2rem;
-    padding-bottom:20px;
-
     color: rgb(79, 78, 78);
+    margin-bottom: 0px;
   
     
 }
 .navbar{
-    /* background-color: rgb(186, 185, 185); */
+
     border-bottom: 1px solid rgb(38, 77, 162);
-    padding: 20px;
+
     background-color: white;
+    /* box-sizing:border-box; */
+    padding: 0px;
+   
   
 
 }
 .nav-item a{
     color: rgb(79, 78, 78);
     font-size: 2rem;
-    padding:0px;
-    margin-bottom: 15px;
-    
-    
-    
+    position: relative;  
+    margin-bottom: 0px;
 }
+
 .nav-item:hover{
     border-bottom: 5px solid rgb(38, 77, 162);
-    margin-bottom: 0px;;
+    margin-bottom: 0px;
 }
 .nav-item{
-    /* margin-right: 20px;
-    margin-left: 20px; */
+
     margin-left: 5rem;
+
 }
 .navbar-brand h1 {
     margin-top: 0px;
@@ -111,6 +112,7 @@ textarea {
     color: rgb(38, 162, 149);
     text-align: left;
     font-family: monospace;
+    margin-left: 20px;
 }
 
 .sidebar {
@@ -119,10 +121,10 @@ textarea {
     padding: 20px;
     margin-top: -16px;
     font-size: 1.3rem;
-    
+
    
 }
-.sidebar h1:after{
+.sidebar:after{
     border: 1px solid cyan;
 }
 
@@ -162,11 +164,7 @@ textarea {
     
 
 }
-/* #show_list li::marker {
-    color: red; 
-    font-size: 1.5em;
-  }
-   */
+
 
 #search_result {
     position: relative;
@@ -209,6 +207,7 @@ textarea {
 
 
 }
+
 #createpage:hover{
     background-color: rgb(125, 211, 125);
 }
