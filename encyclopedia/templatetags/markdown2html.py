@@ -897,13 +897,13 @@ class markdown(object):
                                             next_line = md_string.split("\n")[next_index]
 
                                             if  RE.se_text_h1.search(next_line):  
-                                                self.results+='\n'+"<h1>"+line +"</h1>"+'\n'
+                                                self.results+='\n'+"<h1>"+line +"</h1><hr>"+'\n'
                                                 ignore_index = next_index
                                                 next_line =""
                                                 break
                                             else:
                                                 if RE.se_text_h2.search(next_line): 
-                                                    self.results+='\n'+"<h2>"+line +"</h2>"+'\n' 
+                                                    self.results+='\n'+"<h2>"+line +"</h2><hr>"+'\n' 
                                                     ignore_index =  next_index
                                                     next_line =""
                                                     break
