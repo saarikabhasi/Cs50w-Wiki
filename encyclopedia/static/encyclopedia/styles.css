@@ -6,10 +6,10 @@ body {
     background-color: rgb(233, 233, 233); 
 }
 pre{
-    padding: 16px;
+    /* padding: 16px; */
     overflow: auto;
     font-size: 85%;
-    line-height: 1.45;
+    line-height: 1.45 !important;
     background-color: #f6f8fa;
     border-radius: 6px;
     height: auto;
