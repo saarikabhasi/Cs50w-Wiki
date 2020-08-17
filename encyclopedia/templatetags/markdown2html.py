@@ -12,7 +12,7 @@ class patterns():
             "heading" :"#+\s", #heading 
             "se_text_h1":"^\s*[=]+(?<=$)", # setext h1
             "se_text_h2":"^\s*[-]+(?<=$)", # setext h2
-            "ul":r"^\s*(\-|\*|\+)\s([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #un ordered list
+            "ul":r"^\s*(\-|\*|\+)\s([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
             "ol":r"^\s*(\d+)(\.|\))\s*(.+?)(?<=$)",  # ordered list
             "hr":r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+", #HR
             "bold":r"(\*\*|__)(?=\S)(.+?[*_]*)(?<=\S)\1", #bold
@@ -30,8 +30,8 @@ class patterns():
         # HTML tags 
         substitute_patterns ={
             
-            "ul_li_tag":r"\n<ul>\n<li>\2</li>\n", # new un ordered list tag
-            "li_tag_of_ul":r"\n<li>\2</li>\n", #li tag of un-ordered list
+            "ul_li_tag":r"\n<ul>\n<li>\2</li>\n", # new unordered list tag
+            "li_tag_of_ul":r"\n<li>\2</li>\n", #li tag of unordered list
             "ol_li_tag":r"\n<ol start = \1>\n<li>\3</li>\n",#new ordered list
             "li_tag_of_ol":r"\n<li>\3</li>\n",  #li tag of ordered list
             "hr_tag" : r"\n<hr>\n", #line break tag 
@@ -97,8 +97,8 @@ class tag_variable():
         }
         self.list = {
             '''
-            the below variables are used while calculating the starting space for multi line code blocks.
-            if the ul and/or ol list is active. calculate code block starting space space accordingly
+                the below variables are used while calculating the starting space for multi line code blocks.
+                if the ul and/or ol list is active. calculate code block starting space space accordingly
             '''
             "ul_list_active":False, 
             "ol_list_active":False,
@@ -113,13 +113,12 @@ class markdown(object):
         self.results='' #Stores final result
         self.previous_ul_linespace = 0 # variable that stores previous line's space of un ordered list
         self.markdown_string = value # Markdown string to be converted to HTML
-        # self.ol_current_line_space = 0 # variable that stores current line's space of ordered list
         self.previous_ol_linespace  = 0 # variable that stores previous line's space of ordered list
         
         # variables used by lists
         self.list_variable = {
             "ul":{
-                "ultag_is_open":False, # If True, a Unordered list is open. 
+                "ul_tag_is_open":False, # If True, a unordered list is open. 
                 "sub_ultag_is_open":False, # If True, Nested Unordered list is open.
                 "number_of_nested_list": 0 # Stores number of Nested Unordered List
                 },
@@ -129,7 +128,7 @@ class markdown(object):
                 "number_of_nested_list":0 # Stores number of Nested ordered List
             }
         }
-        self.last_opened_list_tag = ""
+        self.last_opened_list_tag = "" # stores name of previous opened list tag, used when line is new list" 
     
 
     
@@ -137,7 +136,7 @@ class markdown(object):
         '''
             This function calls close function. which closes the given list.
             if both list is given as argument, then it calls close function for ol and ul 
-            else, calls close function for given list name
+            else, calls close function for given list tag
              
             
         '''
@@ -241,14 +240,17 @@ class markdown(object):
         current_ol_line_space = len(line)-len(line.lstrip())
         
         fenced_code_result = RE.multiple_line_fenced_code.findall(line)
+
         # if code block is found append only open tag to line
         # else substitute according to pattern.
+
         if len(fenced_code_result) > 0 and len(fenced_code_result[0].lstrip()) % 3 == 0 or RE.single_line_fenced_code.search(line):
             # multiple line code block 
             code_block_in_list = True
 
 
         if RE.single_line_fenced_code.search(line):
+
             # single line code block is found.
             TagObj.codeBlock["multi_code_active"] = False
             code_block_in_list = True
@@ -257,16 +259,14 @@ class markdown(object):
         if current_ol_line_space-self.previous_ol_linespace == 0 : 
             
             # level 1 ordered list
-            # ultags =""
 
-            
             if self.list_variable["ol"]["ol_tag_is_open"] == False:
                 # first ol 
                 
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<ol><li>"        
                 line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
-                #line = self.close_list(line,"ul") 
+     
                 if self.last_opened_list_tag == "ul":
                     line = self.close_list(line,self.last_opened_list_tag)
                    
@@ -277,7 +277,7 @@ class markdown(object):
 
 
             else:
-
+                #level 1 new li tag of ol list
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<li>"       
                 
@@ -430,7 +430,7 @@ class markdown(object):
         if currentlinespace-self.previous_ul_linespace == 0: 
             # level 1 list
 
-            if self.list_variable["ul"]["ultag_is_open"] == True:    
+            if self.list_variable["ul"]["ul_tag_is_open"] == True:    
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<li>"        
                 line = RE.unordered_list.sub(RE.li_UL_SUB,line)
@@ -448,7 +448,7 @@ class markdown(object):
                 if self.last_opened_list_tag == "ol":
                     line = self.close_list(line,self.last_opened_list_tag)
                 
-                self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
+                self.list_variable["ul"]["ul_tag_is_open"] = True #set ul tag to open
                 TagObj.list["ul_list_active"] = True
                 self.previous_ul_linespace = currentlinespace
                 self.last_opened_list_tag = "ul"
@@ -459,7 +459,7 @@ class markdown(object):
         # could be Level 2 nested ol     
         elif 2<=currentlinespace-self.previous_ul_linespace <=5: 
 
-            if self.list_variable["ul"]["ultag_is_open"] == True: #not a first ul in the list
+            if self.list_variable["ul"]["ul_tag_is_open"] == True: #not a first ul in the list
 
                 if self.list_variable["ul"]["sub_ultag_is_open"] :
                     if self.list_variable["ul"]["number_of_nested_list"] >= 1:
@@ -487,7 +487,7 @@ class markdown(object):
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"]+= "<ul><li>"
                 line = RE.unordered_list.sub(RE.unordered_list_SUB,line)
-                self.list_variable["ul"]["ultag_is_open"] = True 
+                self.list_variable["ul"]["ul_tag_is_open"] = True 
                 TagObj.list["ul_list_active"] = True
                 self.last_opened_list_tag = "ul"
             self.previous_ul_linespace = currentlinespace
@@ -502,7 +502,7 @@ class markdown(object):
 
             line = RE.unordered_list.sub(RE.unordered_list_SUB,line)
             TagObj.list["ul_list_active"] = True
-            self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
+            self.list_variable["ul"]["ul_tag_is_open"] = True #set ul tag to open
             self.previous_ul_linespace = currentlinespace
             self.last_opened_list_tag = "ul"
             
@@ -856,7 +856,7 @@ class markdown(object):
                                 else:
                                     # if current line is a list, check next non empty line. if next line is not a list, close all the opened list
                                     next_non_empty_line =""
-                                    if self.list_variable["ul"]["ultag_is_open"] or self.list_variable["ol"]["ol_tag_is_open"] :
+                                    if self.list_variable["ul"]["ul_tag_is_open"] or self.list_variable["ol"]["ol_tag_is_open"] :
                                         
                                         for next_index in range(index,md_len-1):
                                             
