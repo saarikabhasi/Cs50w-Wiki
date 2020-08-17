@@ -9,24 +9,19 @@ class patterns():
     def __init__(self):
         # Regex pattern 
         core_patterns = {
-            "heading" :"#+\s", #heading
+            "heading" :"#+\s", #heading 
             "se_text_h1":"^\s*[=]+(?<=$)", # setext h1
             "se_text_h2":"^\s*[-]+(?<=$)", # setext h2
-            #"ul":r"^\s*(\-|\*|\+\s)([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #unordered list
-            "ul":r"^\s*(\-|\*|\+)\s([\w*\W*\d*\D*\s*\S*]+?)(?<=$)",
+            "ul":r"^\s*(\-|\*|\+)\s([\w*\W*\d*\D*\s*\S*]+?)(?<=$)", #un ordered list
             "ol":r"^\s*(\d+)(\.|\))\s*(.+?)(?<=$)",  # ordered list
             "hr":r"(?:\s*-{3,})+|(?:\s*\*{3,})+|(?:\s*_{3,})+", #HR
             "bold":r"(\*\*|__)(?=\S)(.+?[*_]*)(?<=\S)\1", #bold
             "italic" :r"(\*|_)(?=\S)(.+?[*_]*)(?<=\S)\1", #italic
-            "bold_and_italic":r"\*\*\*(.+?)\*\*\*",
+            "bold_and_italic":r"\*\*\*(.+?)\*\*\*", #combination of bold and italic
             "strikethrough" :r"(~~)(?=\S)(.+?[*_]*)(?<=\S)\1", #strikethrough
-            #"single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+(?<=$)",
-            "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+",
-            #"single_line_fenced_code" : r"\s*(`{3}|~{3})+([\w*\W*\d*\D*\s*\S*]+?)(\1)+(?<=$)", #Single line fenced code block
-            #"multi_line_fenced_code": r"\s*(`{3})",#Muliple line fenced code block
-            "multi_line_fenced_code":r"\s*[`]+|[~]+",#Muliple line fenced code block
-            #"multi_line_fenced_code":r"\s*[~|`]+",
-            "link_text":r"(\[(.*?)\])(\((.*?)\))", #Links
+            "single_line_fenced_code":r"\s*(`{3})+([\w*\W*\d*\D*\s*\S*]+?)(`{3})+", #single line fenced code block
+            "multi_line_fenced_code":r"\s*[`]+|[~]+",#multi line fenced code block
+            "link_text":r"(\[(.*?)\])(\((.*?)\))", #links
             "image_links":r"(!\[(.*?)\])(\((.*?)\))", #images
             "inline_code":r"\`([\w*\W*\d*\D*\s*\S*]+?)\`", #inline-code
             "automatic_hyperlinks":r"(((http(s)*:\/\/){1}|(www\.{1}))(.*))", #web link
@@ -70,21 +65,17 @@ class patterns():
         self.se_text_h1 = re.compile(core_patterns["se_text_h1"])
         self.se_text_h2 = re.compile(core_patterns["se_text_h2"])
 
-        # sub
+        #substitute patterns
         self.single_line_fenced_code_SUB = substitute_patterns["single_line_fenced_code"]
-        
         self.bold_and_italic_SUB = substitute_patterns["bold_and_italic"]
         self.hr_SUB =  substitute_patterns["hr_tag"] 
         self.bold_SUB = substitute_patterns["bold"]
         self.italic_SUB = substitute_patterns["italic"]
         self.strikethrough_SUB = substitute_patterns["strikethrough"]
-
         self.ordered_list_SUB = substitute_patterns["ol_li_tag"]
         self.li_OL_SUB = substitute_patterns["li_tag_of_ol"]
-
         self.unordered_list_SUB = substitute_patterns["ul_li_tag"]
         self.li_UL_SUB = substitute_patterns["li_tag_of_ul"]
-        
         self.img_SUB = substitute_patterns["image_links"]
         self.link_text_SUB = substitute_patterns["link_text"]
         self.automatic_hyperlinks_SUB = substitute_patterns["automatic_hyperlinks"]
@@ -93,21 +84,23 @@ class patterns():
 
 RE = patterns()   
 
-#variable used by code block and lists
+#variable used by code block 
 class tag_variable():
     def __init__(self):
         self.codeBlock = {
-            "line_with_code": "", #used by multiple line code block
-            "multi_code_active":False,
-            "start_space":0,
-            "start_pattern": "",
-            "code_block_inside_list_space":0,
-            "list_found":False, # code block inside list
+            "line_with_code": "", # stores line inside code block. Used by multiple line code block and single line code block (only while inside list)
+            "multi_code_active":False, #variable to make sure multi code block is active
+            "start_space":0, #start space of multicode block
+            "start_pattern": "", #starting pattern used to open multicode block
+            "list_found":False, #if list is found while beginning the code block
             
         }
         self.list = {
-
-            "ul_list_active":False,
+            '''
+            the below variables are used while calculating the starting space for multi line code blocks.
+            if the ul and/or ol list is active. calculate code block starting space space accordingly
+            '''
+            "ul_list_active":False, 
             "ol_list_active":False,
             
         }
@@ -120,7 +113,7 @@ class markdown(object):
         self.results='' #Stores final result
         self.previous_ul_linespace = 0 # variable that stores previous line's space of un ordered list
         self.markdown_string = value # Markdown string to be converted to HTML
-        self.ol_current_line_space = 0 # variable that stores current line's space of ordered list
+        # self.ol_current_line_space = 0 # variable that stores current line's space of ordered list
         self.previous_ol_linespace  = 0 # variable that stores previous line's space of ordered list
         
         # variables used by lists
@@ -128,20 +121,24 @@ class markdown(object):
             "ul":{
                 "ultag_is_open":False, # If True, a Unordered list is open. 
                 "sub_ultag_is_open":False, # If True, Nested Unordered list is open.
-                "number_of_nested_list": 0 # Stores number of Sub Unordered List
+                "number_of_nested_list": 0 # Stores number of Nested Unordered List
                 },
             "ol":{
                 "ol_tag_is_open":False, # If True, a ordered list is open. 
                 "sub_oltag_is_open":False, # If True, Nested ordered list is open.
-                "number_of_nested_list":0 # Stores number of Sub ordered List
+                "number_of_nested_list":0 # Stores number of Nested ordered List
             }
         }
+        self.last_opened_list_tag = ""
     
 
-
+    
     def close_list(self,line,list_type):
         '''
-            This function closes all the lists. 
+            This function calls close function. which closes the given list.
+            if both list is given as argument, then it calls close function for ol and ul 
+            else, calls close function for given list name
+             
             
         '''
         list_tags = ["ul","ol"]
@@ -153,7 +150,7 @@ class markdown(object):
                 
             line = close_tags +line
         else:
-
+            
             line = self.close(line,list_type)+line
 
         return line
@@ -167,6 +164,7 @@ class markdown(object):
      
         if list_type in self.list_variable.keys():
             # unset all the boolean variable used by lists
+
             if list_type == "ul":
                 TagObj.list["ul_list_active"] = False
 
@@ -176,6 +174,7 @@ class markdown(object):
             for var in self.list_variable[list_type]:
                 
                 if type(self.list_variable[list_type][var]) == bool and self.list_variable[list_type][var] == True:
+
                     close_tags += "</" + list_type + ">"+'\n'
                     self.list_variable[list_type][var] = False
 
@@ -223,6 +222,7 @@ class markdown(object):
                 2. level 1
                          
         '''
+
         if RE.unordered_list.search(line):
             # matched pattern of unordered list
             line = self.ul_list(line)
@@ -231,7 +231,7 @@ class markdown(object):
             # matched pattern of ordered list
             line = self.ol_list(line)
         
-
+     
         return line
 
     #ordered list
@@ -257,25 +257,34 @@ class markdown(object):
         if current_ol_line_space-self.previous_ol_linespace == 0 : 
             
             # level 1 ordered list
-            ultags =""
+            # ultags =""
 
+            
             if self.list_variable["ol"]["ol_tag_is_open"] == False:
                 # first ol 
-                  
+                
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<ol><li>"        
                 line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
-
+                #line = self.close_list(line,"ul") 
+                if self.last_opened_list_tag == "ul":
+                    line = self.close_list(line,self.last_opened_list_tag)
+                   
+                self.last_opened_list_tag = "ol"
                 self.list_variable["ol"]["ol_tag_is_open"] = True
                 TagObj.list["ol_list_active"] = True
                 self.previous_ol_linespace = current_ol_line_space
 
+
             else:
+
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<li>"       
-  
+                
                 line = RE.ordered_list.sub(RE.li_OL_SUB,line)
-                line = self.close_list(line,"ul")
+                if self.last_opened_list_tag == "ul":
+                    line = self.close_list(line,self.last_opened_list_tag)
+
                 
 
 
@@ -291,7 +300,7 @@ class markdown(object):
                         if code_block_in_list:
                             TagObj.codeBlock["line_with_code"] += "<ol><li>"       
                         line = RE.ordered_list.sub(RE.ordered_list_SUB,line) 
-
+                        self.last_opened_list_tag = "ol"
                     else:
                         if code_block_in_list:
                             TagObj.codeBlock["line_with_code"] += "<li>"       
@@ -303,6 +312,7 @@ class markdown(object):
                     if code_block_in_list:
                         TagObj.codeBlock["line_with_code"] += "<ol><li>"       
                     line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
+                    self.last_opened_list_tag = "ol"
             else:
                 #first ordered list
                 if code_block_in_list:
@@ -310,6 +320,7 @@ class markdown(object):
                 line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
                 self.list_variable["ol"]["ol_tag_is_open"] = True 
                 TagObj.list["ol_list_active"] = True
+                self.last_opened_list_tag = "ol"
             self.previous_ol_linespace = current_ol_line_space
 
    
@@ -341,6 +352,7 @@ class markdown(object):
                     if code_block_in_list:
                         TagObj.codeBlock["line_with_code"] += "<ol><li>"       
                     line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
+                    self.last_opened_list_tag = "ol"
            
                     
                 line =line+oltags
@@ -351,9 +363,11 @@ class markdown(object):
                 line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
                 self.list_variable["ol"]["ol_tag_is_open"] = True 
                 TagObj.list["ol_list_active"] = True
+                self.last_opened_list_tag = "ol"
             self.previous_ol_linespace = current_ol_line_space
 
         else:
+
             # if the lines does not fall in any of the above categories , it is considered as a entirely new ol list
             if self.list_variable["ol"]["ol_tag_is_open"] == True: 
                 line = self.close_list(line,"ol")
@@ -364,6 +378,7 @@ class markdown(object):
             line = RE.ordered_list.sub(RE.ordered_list_SUB,line)
             self.list_variable["ol"]["ol_tag_is_open"] = True #set ol tag to open
             TagObj.list["ol_list_active"] = True
+            self.last_opened_list_tag = "ol"
             self.previous_ol_linespace = current_ol_line_space
         
         if code_block_in_list:
@@ -410,31 +425,40 @@ class markdown(object):
             code_block_in_list = True
 
         
-        
+
         
         if currentlinespace-self.previous_ul_linespace == 0: 
             # level 1 list
+
             if self.list_variable["ul"]["ultag_is_open"] == True:    
                 if code_block_in_list:
                     TagObj.codeBlock["line_with_code"] += "<li>"        
                 line = RE.unordered_list.sub(RE.li_UL_SUB,line)
+                if self.last_opened_list_tag == "ol":
+                    line = self.close_list(line,self.last_opened_list_tag)
 
             else:
                 # first ul 
+
+
                 if code_block_in_list:
-                    TagObj.codeBlock["line_with_code"] += "<ul><li>"        
+                    TagObj.codeBlock["line_with_code"] += "<ul><li>"    
+                
                 line = RE.unordered_list.sub(RE.unordered_list_SUB,line)
-      
-            
+                if self.last_opened_list_tag == "ol":
+                    line = self.close_list(line,self.last_opened_list_tag)
+                
                 self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
                 TagObj.list["ul_list_active"] = True
                 self.previous_ul_linespace = currentlinespace
-            
+                self.last_opened_list_tag = "ul"
+
+                
 
   
         # could be Level 2 nested ol     
         elif 2<=currentlinespace-self.previous_ul_linespace <=5: 
-           
+
             if self.list_variable["ul"]["ultag_is_open"] == True: #not a first ul in the list
 
                 if self.list_variable["ul"]["sub_ultag_is_open"] :
@@ -443,6 +467,7 @@ class markdown(object):
                         if code_block_in_list:
                             TagObj.codeBlock["line_with_code"]+= "<ul><li>"
                         line = RE.unordered_list.sub(RE.unordered_list_SUB,line) 
+                        self.last_opened_list_tag = "ul"
                   
                     else:
                         if code_block_in_list:
@@ -456,6 +481,7 @@ class markdown(object):
                     if code_block_in_list:
                         TagObj.codeBlock["line_with_code"]+= "<ul><li>"
                     line = RE.unordered_list.sub(RE.unordered_list_SUB,line)
+                    self.last_opened_list_tag = "ul"
             else:
                 # first ul
                 if code_block_in_list:
@@ -463,6 +489,7 @@ class markdown(object):
                 line = RE.unordered_list.sub(RE.unordered_list_SUB,line)
                 self.list_variable["ul"]["ultag_is_open"] = True 
                 TagObj.list["ul_list_active"] = True
+                self.last_opened_list_tag = "ul"
             self.previous_ul_linespace = currentlinespace
 
         # nested new list
@@ -477,6 +504,7 @@ class markdown(object):
             TagObj.list["ul_list_active"] = True
             self.list_variable["ul"]["ultag_is_open"] = True #set ul tag to open
             self.previous_ul_linespace = currentlinespace
+            self.last_opened_list_tag = "ul"
             
         #handle code block if true
         if code_block_in_list:
@@ -823,12 +851,12 @@ class markdown(object):
                             if len(imglines) <=0:
                                 #list
                                 if RE.ordered_list.search(line) or RE.unordered_list.search(line):
-                                   
+                                    
                                     line = self.list(line)  
                                 else:
                                     # if current line is a list, check next non empty line. if next line is not a list, close all the opened list
                                     next_non_empty_line =""
-                                    if self.list_variable["ul"]["ultag_is_open"]or TagObj.list["ol_list_active"]:
+                                    if self.list_variable["ul"]["ultag_is_open"] or self.list_variable["ol"]["ol_tag_is_open"] :
                                         
                                         for next_index in range(index,md_len-1):
                                             
@@ -911,7 +939,7 @@ class markdown(object):
                                 else:
                                      
                                     self.results+='\n'+"<p>"+line +"</p>"+'\n'  
-                  
+
                    
 
         if  TagObj.list["ul_list_active"]:
