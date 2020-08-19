@@ -1,47 +1,44 @@
-# Cs50-Wiki
-* item1 (0)
-* item2 (0)
-* item3 (0)
-----
-  * item1 (2)
-    * item2 (4)
-      * item3 (6)
------
-* item1 (0)
-  * item2 (2)
-    * item3 (4)
------
-   * item1 (3)
-     * item2 (5)
-       * item3 (10) *maximum 5 min:2* 
+# CS50 Web Programming with Python and JavaScript
 
-nested li is defined in such a way that difference between new li and prev li must be diff>=2 and diff<=5
-------------
-* item1 (0)
-     * item2 (2)
------
-     
-7. Channel.js: **(Messages View,Sending Messages,Personal Touch)**
-         
-      * On DOMContentLoaded:
-        * Disables send message button if message is empty. Send message button is active only if there is a message or any attachements.  
-        * Establish Socket connection between server and client.
-        * Send message: 
-           * Socket emit with user message , date, time and attachments (if any) to server. 
-        * Announce message: 
-           * Socket announce to client
-             * Stores current channel in local storage **(For Remembering Channel Feature)**
-             * Creates new divs for the new messages .
-             * Creates new divs to support delete message feature
-        * Display error message if user try to delete or send message to a channel which is not yet created.
+Webpage link: https://courses.edx.org/courses/course-v1:HarvardX+CS50W+Web/course/
 
-  8. main.css:
+# Project: Wiki
 
-      * CSS Styling for entire application.
+### Description:
 
-  9.requirements.txt:
+Design of Wikipedia-like online encyclopedia. Uses Github Markdown syntax to write the contents of encyclopedia.
 
-      * Information about the Python packages that are used by the application.
+#### Features:
+* Create New page
+* Search for a page
+* Edit existing page
+* Show random page
+* Markdown to HTML Conversion. 
+  
+
+### Markdown to HTML Conversion :
+
+Implemented the Markdown to HTML conversion without using any external libraries such as ***python-markdown2 package***
+
+The File path is: 
+- **encyclopedia/templatetags/markdown.py** 
+- **encyclopedia/templatetags/md.py**
+
+**Supporting Features**
+  * headings 
+  * text styling: Bold, Italic, Strikethrough, Bold and italic
+  * unordered and ordered lists
+  * paragraphs
+  * Multiple and Single line Code Blocks
+  * Setext for <*h1*> and <*h2*> Tags
+  * horizontal rule <*hr*> tag
+  * Link text (Hyperlinks)
+  * Image links
+  * inline code
+  * Web links (example: https://www.google.com)
+  * accepts html tags <*img*> inside a <*p*> tag 
+
+*Note: Additional support in progress*
            
          
 ### Built with:
@@ -50,24 +47,20 @@ nested li is defined in such a way that difference between new li and prev li mu
   1. [Bootstrap (version: 4.5)](https://getbootstrap.com/)
 
   2. [Microsoft Visual code (version:1.44)](https://code.visualstudio.com/)
-
-  3. [Flask (version: 1.1.2)](https://flask.palletsprojects.com/en/1.1.x/)
-
-  4. [Flask-Session(version: 0.3.2)](https://flask.palletsprojects.com/en/1.1.x/)
-  
-  5. [Flask-SocketIO(version: 4.3.0)](https://flask-socketio.readthedocs.io/en/latest/)
+    
+  3. [Django version (version:1.44)](https://www.djangoproject.com/)
   
   6. [Jinja2 (version: 2.11.2)](https://jinja.palletsprojects.com/en/2.11.x/)
   
   7. [Python(version 3.7.3)](https://www.python.org/)
   
   8. HTML5
-  
-  9. Javascript ES6
-  
+
   10. Cascading Style Sheets (CSS)
   
 ### Author:
 ------------
 NAIR SAARIKA BHASI
 # saarikabhasi
+   
+  
