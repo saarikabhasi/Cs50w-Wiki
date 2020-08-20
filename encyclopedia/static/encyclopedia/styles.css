@@ -6,10 +6,10 @@ body {
     background-color: rgb(233, 233, 233); 
 }
 pre{
-    padding: 16px;
+    /* padding: 16px; */
     overflow: auto;
     font-size: 85%;
-    line-height: 1.45;
+    line-height: 1.45 !important;
     background-color: #f6f8fa;
     border-radius: 6px;
     height: auto;
@@ -237,25 +237,32 @@ textarea {
 label{
     font-size: 1.7rem;
     display: block;
+    margin-left: 5px;
 }
 [type =text]{
     text-align: center;
     border-radius: 6px ;
     margin-top: 20px;
-    margin-left:15px;
+    margin-left:5px;
     margin-right: 15px;
     position: relative;
-    width:70% ;
+    width:100% ;
     font-size: 1.7rem;
 
 }
 textarea{
     font-size: 1.7rem;
-    width:60%;
+    width:100%;
     border-radius: 6px ;
     margin-top: 20px;
-    margin-left:15px;
-    margin-right: 15px;
+    margin-left:5px;
+    margin-right: 0px;
     
+}
+.helptext{
+    font-size: 1rem;
+    color: rgb(11, 11, 11);
+    float:right;
+    margin-right: 100px;
 }
 

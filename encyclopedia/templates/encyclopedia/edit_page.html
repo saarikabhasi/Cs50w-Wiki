@@ -5,11 +5,12 @@
 {% endblock %}
 
 {% block body %}
-    <h1>Edit page</h1>
-   
+  
+    <h1 class="display-3 text-secondary">{{title}}</h1>
+    
     <form action="{% url 'wiki:save'  %}" method="POST">
         {% csrf_token %}          
-   
+        
         {{edit_form}}
         
         <input id = "createpage" type="submit">
