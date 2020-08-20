@@ -133,14 +133,14 @@ textarea {
     border: 1px solid cyan;
 }
 
-#index h1{
+/* #index h1{
     color: rgb(38, 162, 149);;
     margin-left: 0%;
     margin-bottom: 2rem;
-    font-size: 3rem;
+    font-size: 2rem;
     text-transform: uppercase;
 
-}
+} */
 #show_list{
     position: relative;
     white-space:wrap;
